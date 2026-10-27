@@ -52,3 +52,9 @@ test('static preview is explicitly non-production and discourages search indexin
   assert.match(home, /link: \.\/concept-index\//);
   assert.match(home, /link: \.\/about\//);
 });
+
+
+test('Starlight favicon is authored root-relative and receives Pages prefix only once', () => {
+  assert.match(astro, /favicon:\s*['"]\/favicon\.svg['"]/);
+  assert.doesNotMatch(astro, /favicon:\s*`\$\{pages\.base\}/);
+});

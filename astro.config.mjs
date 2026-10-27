@@ -19,7 +19,7 @@ export default defineConfig({
       title: pages.preview ? 'Engineering Concepts Atlas — Editorial Preview' : 'Engineering Concepts Atlas',
       description: 'Technical concepts, precise guarantees, failure modes, and primary sources.',
       customCss: ['./src/styles/atlas.css'],
-      favicon: `${pages.base}/favicon.svg`,
+      favicon: '/favicon.svg',
       ...(pages.preview ? { head: [{ tag: 'meta', attrs: { name: 'robots', content: 'noindex, nofollow' } }] } : {}),
       sidebar: [
         { label: 'Explore', items: [{ label: 'Home', link: '/' }, { slug: 'concept-index' }] },
