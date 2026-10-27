@@ -1,0 +1,32 @@
+{
+  "name": "engineering-concepts-atlas",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "astro dev",
+    "test": "node --test tests/*.test.mjs",
+    "validate:content": "node scripts/validate-content.mjs",
+    "prebuild": "npm run test && npm run validate:content",
+    "build": "astro build && node scripts/check-dist.mjs",
+    "build:release": "node scripts/verify-publication.mjs && npm run build",
+    "preview": "astro preview",
+    "check": "astro check",
+    "test:browser": "node --test tests/browser.integration.mjs",
+    "verify:browser": "node scripts/browser-smoke.mjs",
+    "verify:m1-2": "npm run test && npm run validate:content && npm run check && npm run build && npm run test:browser && npm run verify:browser",
+    "doctor:m1-2": "node scripts/doctor-m1-2.mjs"
+  },
+  "dependencies": {
+    "astro": "^7.4.2",
+    "@astrojs/starlight": "^0.42.6"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.6",
+    "@astrojs/markdown-remark": "^7.3.4",
+    "typescript": "^5.9.3"
+  },
+  "engines": {
+    "node": ">=22.23.4"
+  }
+}

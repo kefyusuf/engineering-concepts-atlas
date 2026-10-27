@@ -1,0 +1,27 @@
+{
+  "audit_date": "2026-10-27",
+  "scope": "Local file/CSV structure and referential integrity only; not factual or publication approval",
+  "counts": {
+    "groups": 6,
+    "categories": 20,
+    "concepts": 100,
+    "m1_seeds": 20,
+    "new_proposed_relations": 18,
+    "pilot_source_links": 7
+  },
+  "checks": {
+    "unique_ids": true,
+    "five_per_category": true,
+    "one_seed_per_category": true,
+    "all_relation_targets_exist": true,
+    "no_duplicate_unordered_relations": true,
+    "manifest_file_presence": true
+  },
+  "errors": [],
+  "limitations": [
+    "No independent human sign-off",
+    "No Astro build",
+    "No executable code examples tested",
+    "External content may evolve"
+  ]
+}

@@ -1,0 +1,139 @@
+---
+{
+  "title": "Idempotency",
+  "description": "Logical retry safety, keys, storage windows, concurrency hazards and the limits of HTTP semantics.",
+  "contentType": "concept",
+  "conceptId": "distributed.idempotency",
+  "category": "distributed-systems",
+  "kind": "concept",
+  "aliases": [
+    "Idempotent Operation",
+    "Idempotency Key"
+  ],
+  "related": [
+    {
+      "conceptId": "api.http-method-semantics",
+      "relation": "related_to"
+    },
+    {
+      "conceptId": "concurrency.atomic-operation",
+      "relation": "contrasts_with"
+    },
+    {
+      "conceptId": "db.acid",
+      "relation": "related_to"
+    }
+  ],
+  "editorialStatus": "draft",
+  "sources": [
+    {
+      "title": "RFC 9110 §9.2.2: Idempotent Methods",
+      "url": "https://www.rfc-editor.org/rfc/rfc9110#section-9.2.2",
+      "role": "primary",
+      "scope": "HTTP request method idempotency in intended effect, not payment implementation semantics"
+    },
+    {
+      "title": "IETF HTTPAPI Idempotency-Key Internet-Draft",
+      "url": "https://datatracker.ietf.org/doc/draft-ietf-httpapi-idempotency-key-header/",
+      "role": "draft",
+      "scope": "Proposed HTTP header semantics; Internet-Draft, not final RFC as reviewed for M0"
+    },
+    {
+      "title": "Stripe: Idempotent requests",
+      "url": "https://docs.stripe.com/api/idempotent_requests",
+      "role": "vendor",
+      "scope": "Specific documented Stripe API behavior; version-dependent and not a universal API contract"
+    }
+  ]
+}
+---
+
+:::caution[Editorial preview — not approved for publication]
+This is an M1 draft. HTTP semantics, individual APIs and durable side effects are deliberately distinguished. Check source versions and draft status before external use.
+:::
+
+## Precise definition
+
+An operation is idempotent when applying it more than once produces the **same specified intended effect** as applying it once, subject to a defined operation identity and scope. This does not require every response body, log entry, metric or incidental event to be byte-for-byte identical. For a business operation, the deduplication window and identity policy must be explicit.
+
+Mathematically, a function `f` is idempotent if `f(f(x)) = f(x)`. In distributed systems, the relevant unit is usually a *logical operation*, not the number of network packets or function calls.
+
+## Why it exists
+
+A server may commit an order or charge successfully while the acknowledgement is lost. The client cannot tell whether it is safe to retry. Without an idempotency policy a repeated POST can create a second charge; refusing all retries can strand a customer after a transient network fault. We need a way to recognize the same intended action across attempts.
+
+## Mental model
+
+A cloakroom ticket represents one claim. Showing the same ticket again does not generate a second coat; it identifies the same claim. But this analogy fails if tickets expire, ticket numbers collide across venues, or a clerk hands out a coat without recording redemption. Those are the distributed-system edge cases that must be addressed.
+
+## Mechanics and guarantees
+
+A possible application-level protocol is:
+
+1. Assign a stable identity to the *logical operation*, optionally with a tenant and endpoint scope.
+2. Persist a durable reservation or uniqueness record and associate it with a request fingerprint.
+3. Ensure competing workers cannot both commit the same intended effect.
+4. Record the outcome atomically **with the local side effect** where feasible.
+5. On a retry, validate payload compatibility; return the recorded result or the documented pending/conflict outcome.
+6. Define retention, expiry, crash recovery and reconciliation of *external* effects.
+
+This is **an example design**. There is no universal HTTP-level mandate that all POST endpoints implement these steps.
+
+### HTTP semantics are narrower
+
+RFC 9110 section 9.2.2 defines idempotency for HTTP method semantics. Standard `PUT` and `DELETE` requests are specified as idempotent in **intended effect**. `POST` is not idempotent by default, but an application can separately implement a retry policy. An `Idempotency-Key` header alone does not enforce server behavior.
+
+The IETF `Idempotency-Key` work referenced here was **an Internet-Draft during the M0 review of October 2026**, not an issued RFC. Check the current status before treating its suggestions as normative. The behavior of payment providers and different API versions is not interchangeable.
+
+## Worked example
+
+This pseudocode is **not executable SQL**; it illustrates the state transitions rather than prescribing a production storage implementation.
+
+```text
+handle(request, tenant, idempotencyKey):
+    fingerprint = hash(canonicalize(request.businessPayload))
+    operation = safelyReserveUnique(tenant, idempotencyKey)
+
+    if operation already exists:
+        if operation.fingerprint != fingerprint: return CONFLICT
+        if operation.state == COMPLETED: return recordedOutcome(operation)
+        return IN_PROGRESS  // Policy-dependent response
+
+    // For a local database effect, persist result and operation state
+    // in one correctly isolated transaction where possible.
+    outcome = executeBusinessEffectOnce()
+    storeCompletedOutcome(operation, fingerprint, outcome)
+    return outcome
+```
+
+**Critical omission warning:** `safelyReserveUnique` and `executeBusinessEffectOnce` are *not* primitive instructions; the atomic boundary, transaction isolation, crash safety and concurrency correctness must be designed. A remote payment charge that succeeds before the local result is stored creates an ambiguous outcome requiring provider-side lookup or reconciliation.
+
+## Failure modes
+
+- **Concurrent duplicate:** two workers may reserve and execute unless a unique constraint or equivalent safe coordination exists.
+- **Same key, different payload:** a key alone cannot establish which request was intended; document conflict behavior.
+- **Lost response after commit:** the retry must detect the prior committed effect.
+- **Expired identity:** after retention expiry a previously seen key may be treated as new; guarantees are window-scoped.
+- **Cross-tenant collision:** a globally shared key namespace may incorrectly collapse unrelated requests.
+- **External side effect gap:** a local transaction does not atomically commit a third-party charge.
+- **Response replay myth:** some implementations reproduce outcomes, some return a status, and their failure semantics vary.
+
+## Trade-offs
+
+Idempotency records add storage, concurrency control, cleanup and operational recovery paths. A narrow repeat-safe `PUT` with naturally replaceable state may require less machinery than a complex payment command. Expiry windows balance storage costs and retry expectations, and they must be part of the contract.
+
+## Related concepts
+
+**Atomicity** describes indivisible operations and is not enough to identify a *logical request* across network retries. Read the [Atomic Operation preview](/concurrency-parallelism/atomic-operation/). **Transaction isolation** can support a deduplication design, but does not automatically make a remote side effect exactly-once. **At-least-once delivery** makes idempotent consumers important, not unnecessary.
+
+## Testing and verification
+
+Use a storage-backed acceptance suite: send the same key twice after commit; send two copies concurrently; retry after dropping the response; reuse a key with a different fingerprint; test expiry and tenant separation. Also inject a crash *after the external effect but before local persistence* and require evidence of a recovery/reconciliation path. Test the documented response behavior rather than assuming every API replays identical bytes.
+
+## References
+
+- [RFC 9110 §9.2.2](https://www.rfc-editor.org/rfc/rfc9110#section-9.2.2) — normative HTTP method semantics only.
+- [IETF HTTPAPI Idempotency-Key draft](https://datatracker.ietf.org/doc/draft-ietf-httpapi-idempotency-key-header/) — draft status, verify before publication.
+- [Stripe API idempotency docs](https://docs.stripe.com/api/idempotent_requests) — vendor-specific implementation, not the definition.
+
+**Editorial status:** draft. No `reviewedAt` date is asserted.

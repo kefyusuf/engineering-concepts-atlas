@@ -1,0 +1,101 @@
+concept_id,title,category_id,category_label,group,slug,m1_seed,editorial_status,kind
+programming.idiomatic-programming,Idiomatic Programming,programming-language-concepts,Programming Language Concepts,Programming Foundations,idiomatic-programming,yes,planned,concept
+programming.generics,Generics,programming-language-concepts,Programming Language Concepts,Programming Foundations,generics,no,planned,concept
+programming.mutation,Mutation,programming-language-concepts,Programming Language Concepts,Programming Foundations,mutation,no,planned,concept
+programming.abstraction,Abstraction,programming-language-concepts,Programming Language Concepts,Programming Foundations,abstraction,no,planned,concept
+programming.reflection,Reflection,programming-language-concepts,Programming Language Concepts,Programming Foundations,reflection,no,planned,concept
+types.type-inference,Type Inference,type-systems,Type Systems,Programming Foundations,type-inference,yes,planned,concept
+types.covariance,Covariance,type-systems,Type Systems,Programming Foundations,covariance,no,planned,concept
+types.contravariance,Contravariance,type-systems,Type Systems,Programming Foundations,contravariance,no,planned,concept
+types.structural-typing,Structural Typing,type-systems,Type Systems,Programming Foundations,structural-typing,no,planned,concept
+types.refinement-types,Refinement Types,type-systems,Type Systems,Programming Foundations,refinement-types,no,planned,concept
+functional.pure-function,Pure Function,functional-programming,Functional Programming,Programming Foundations,pure-function,yes,planned,concept
+functional.referential-transparency,Referential Transparency,functional-programming,Functional Programming,Programming Foundations,referential-transparency,no,planned,concept
+functional.immutability,Immutability,functional-programming,Functional Programming,Programming Foundations,immutability,no,planned,concept
+functional.closure,Closure,functional-programming,Functional Programming,Programming Foundations,closure,no,planned,concept
+functional.lazy-evaluation,Lazy Evaluation,functional-programming,Functional Programming,Programming Foundations,lazy-evaluation,no,planned,concept
+patterns.observer-pattern,Observer Pattern,oop-design-patterns,OOP & Design Patterns,Programming Foundations,observer-pattern,yes,planned,concept
+patterns.adapter-pattern,Adapter Pattern,oop-design-patterns,OOP & Design Patterns,Programming Foundations,adapter-pattern,no,planned,concept
+patterns.strategy-pattern,Strategy Pattern,oop-design-patterns,OOP & Design Patterns,Programming Foundations,strategy-pattern,no,planned,concept
+patterns.dependency-injection,Dependency Injection,oop-design-patterns,OOP & Design Patterns,Programming Foundations,dependency-injection,no,planned,concept
+patterns.composition,Composition,oop-design-patterns,OOP & Design Patterns,Programming Foundations,composition,no,planned,concept
+concurrency.atomic-operation,Atomic Operation,concurrency-parallelism,Concurrency & Parallelism,Runtime & Systems,atomic-operation,yes,planned,concept
+concurrency.concurrency,Concurrency,concurrency-parallelism,Concurrency & Parallelism,Runtime & Systems,concurrency,no,planned,concept
+concurrency.parallelism,Parallelism,concurrency-parallelism,Concurrency & Parallelism,Runtime & Systems,parallelism,no,planned,concept
+concurrency.data-race,Data Race,concurrency-parallelism,Concurrency & Parallelism,Runtime & Systems,data-race,no,planned,concept
+concurrency.deadlock,Deadlock,concurrency-parallelism,Concurrency & Parallelism,Runtime & Systems,deadlock,no,planned,concept
+os.virtual-memory,Virtual Memory,operating-systems-memory,Operating Systems & Memory,Runtime & Systems,virtual-memory,yes,planned,concept
+os.process,Process,operating-systems-memory,Operating Systems & Memory,Runtime & Systems,process,no,planned,concept
+os.thread,Thread,operating-systems-memory,Operating Systems & Memory,Runtime & Systems,thread,no,planned,concept
+os.memory-leak,Memory Leak,operating-systems-memory,Operating Systems & Memory,Runtime & Systems,memory-leak,no,planned,concept
+os.copy-on-write,Copy-on-Write,operating-systems-memory,Operating Systems & Memory,Runtime & Systems,copy-on-write,no,planned,concept
+io.input-output,Input/Output (I/O),io-networking,I/O & Networking,Runtime & Systems,input-output,yes,planned,concept
+io.blocking-io,Blocking I/O,io-networking,I/O & Networking,Runtime & Systems,blocking-io,no,planned,concept
+io.nonblocking-io,Non-blocking I/O,io-networking,I/O & Networking,Runtime & Systems,nonblocking-io,no,planned,concept
+io.event-loop,Event Loop,io-networking,I/O & Networking,Runtime & Systems,event-loop,no,planned,concept
+io.backpressure,Backpressure,io-networking,I/O & Networking,Runtime & Systems,backpressure,no,planned,concept
+compilers.abstract-syntax-tree,Abstract Syntax Tree (AST),compilers-runtimes,Compilers & Runtimes,Runtime & Systems,abstract-syntax-tree,yes,planned,concept
+compilers.compiler,Compiler,compilers-runtimes,Compilers & Runtimes,Runtime & Systems,compiler,no,planned,concept
+compilers.interpreter,Interpreter,compilers-runtimes,Compilers & Runtimes,Runtime & Systems,interpreter,no,planned,concept
+compilers.just-in-time-compilation,Just-in-Time Compilation,compilers-runtimes,Compilers & Runtimes,Runtime & Systems,just-in-time-compilation,no,planned,concept
+compilers.undefined-behavior,Undefined Behavior,compilers-runtimes,Compilers & Runtimes,Runtime & Systems,undefined-behavior,no,planned,concept
+api.http-method-semantics,HTTP Method Semantics,http-api-integration,"HTTP, APIs & Integration",Data & Distributed Computing,http-method-semantics,yes,planned,concept
+api.rest,REST,http-api-integration,"HTTP, APIs & Integration",Data & Distributed Computing,rest,no,planned,concept
+api.webhook,Webhook,http-api-integration,"HTTP, APIs & Integration",Data & Distributed Computing,webhook,no,planned,concept
+api.content-negotiation,Content Negotiation,http-api-integration,"HTTP, APIs & Integration",Data & Distributed Computing,content-negotiation,no,planned,concept
+api.api-versioning,API Versioning,http-api-integration,"HTTP, APIs & Integration",Data & Distributed Computing,api-versioning,no,planned,concept
+db.transaction-isolation-levels,Transaction Isolation Levels,databases-transactions,Databases & Transactions,Data & Distributed Computing,transaction-isolation-levels,yes,planned,concept
+db.acid,ACID,databases-transactions,Databases & Transactions,Data & Distributed Computing,acid,no,planned,concept
+db.mvcc,MVCC,databases-transactions,Databases & Transactions,Data & Distributed Computing,mvcc,no,planned,concept
+db.optimistic-locking,Optimistic Locking,databases-transactions,Databases & Transactions,Data & Distributed Computing,optimistic-locking,no,planned,concept
+db.serializability,Serializability,databases-transactions,Databases & Transactions,Data & Distributed Computing,serializability,no,planned,concept
+distributed.idempotency,Idempotency,distributed-systems,Distributed Systems,Data & Distributed Computing,idempotency,yes,planned,concept
+distributed.eventual-consistency,Eventual Consistency,distributed-systems,Distributed Systems,Data & Distributed Computing,eventual-consistency,no,planned,concept
+distributed.consensus,Consensus,distributed-systems,Distributed Systems,Data & Distributed Computing,consensus,no,planned,concept
+distributed.circuit-breaker,Circuit Breaker,distributed-systems,Distributed Systems,Data & Distributed Computing,circuit-breaker,no,planned,concept
+distributed.transactional-outbox,Transactional Outbox,distributed-systems,Distributed Systems,Data & Distributed Computing,transactional-outbox,no,planned,concept
+algorithms.bloom-filter,Bloom Filter,data-structures-algorithms,Data Structures & Algorithms,Data & Distributed Computing,bloom-filter,yes,planned,concept
+algorithms.big-o-notation,Big O Notation,data-structures-algorithms,Data Structures & Algorithms,Data & Distributed Computing,big-o-notation,no,planned,concept
+algorithms.hash-table,Hash Table,data-structures-algorithms,Data Structures & Algorithms,Data & Distributed Computing,hash-table,no,planned,concept
+algorithms.directed-acyclic-graph,Directed Acyclic Graph (DAG),data-structures-algorithms,Data Structures & Algorithms,Data & Distributed Computing,directed-acyclic-graph,no,planned,concept
+algorithms.amortized-analysis,Amortized Analysis,data-structures-algorithms,Data Structures & Algorithms,Data & Distributed Computing,amortized-analysis,no,planned,concept
+security.owasp,OWASP,application-security,Application Security,Security & Architecture,owasp,yes,planned,organization
+security.attack-surface,Attack Surface,application-security,Application Security,Security & Architecture,attack-surface,no,planned,concept
+security.injection-vulnerabilities,Injection Vulnerabilities,application-security,Application Security,Security & Architecture,injection-vulnerabilities,no,planned,concept
+security.ssrf,Server-Side Request Forgery (SSRF),application-security,Application Security,Security & Architecture,ssrf,no,planned,concept
+security.threat-modeling,Threat Modeling,application-security,Application Security,Security & Architecture,threat-modeling,no,planned,concept
+crypto.oauth-2,OAuth 2.0,authentication-cryptography,Authentication & Cryptography,Security & Architecture,oauth-2,yes,planned,concept
+crypto.authentication,Authentication,authentication-cryptography,Authentication & Cryptography,Security & Architecture,authentication,no,planned,concept
+crypto.authorization,Authorization,authentication-cryptography,Authentication & Cryptography,Security & Architecture,authorization,no,planned,concept
+crypto.digital-signatures,Digital Signatures,authentication-cryptography,Authentication & Cryptography,Security & Architecture,digital-signatures,no,planned,concept
+crypto.nonce,Nonce,authentication-cryptography,Authentication & Cryptography,Security & Architecture,nonce,no,planned,concept
+architecture.bounded-context,Bounded Context,software-architecture,Software Architecture,Security & Architecture,bounded-context,yes,planned,concept
+architecture.hexagonal-architecture,Hexagonal Architecture,software-architecture,Software Architecture,Security & Architecture,hexagonal-architecture,no,planned,concept
+architecture.cqrs,CQRS,software-architecture,Software Architecture,Security & Architecture,cqrs,no,planned,concept
+architecture.modular-monolith,Modular Monolith,software-architecture,Software Architecture,Security & Architecture,modular-monolith,no,planned,concept
+architecture.coupling,Coupling,software-architecture,Software Architecture,Security & Architecture,coupling,no,planned,concept
+testing.mutation-testing,Mutation Testing,testing-verification,Testing & Verification,Quality & Operations,mutation-testing,yes,planned,concept
+testing.test-driven-development,Test-Driven Development (TDD),testing-verification,Testing & Verification,Quality & Operations,test-driven-development,no,planned,concept
+testing.property-based-testing,Property-Based Testing,testing-verification,Testing & Verification,Quality & Operations,property-based-testing,no,planned,concept
+testing.formal-verification,Formal Verification,testing-verification,Testing & Verification,Quality & Operations,formal-verification,no,planned,concept
+testing.flaky-test,Flaky Test,testing-verification,Testing & Verification,Quality & Operations,flaky-test,no,planned,concept
+performance.tail-latency,Tail Latency,performance-engineering,Performance Engineering,Quality & Operations,tail-latency,yes,planned,concept
+performance.latency,Latency,performance-engineering,Performance Engineering,Quality & Operations,latency,no,planned,concept
+performance.throughput,Throughput,performance-engineering,Performance Engineering,Quality & Operations,throughput,no,planned,concept
+performance.cache-stampede,Cache Stampede,performance-engineering,Performance Engineering,Quality & Operations,cache-stampede,no,planned,concept
+performance.amdahls-law,Amdahl's Law,performance-engineering,Performance Engineering,Quality & Operations,amdahls-law,no,planned,concept
+devops.sbom,Software Bill of Materials (SBOM),devops-ci-cd,DevOps & CI/CD,Quality & Operations,sbom,yes,planned,concept
+devops.continuous-integration,Continuous Integration,devops-ci-cd,DevOps & CI/CD,Quality & Operations,continuous-integration,no,planned,concept
+devops.immutable-infrastructure,Immutable Infrastructure,devops-ci-cd,DevOps & CI/CD,Quality & Operations,immutable-infrastructure,no,planned,concept
+devops.build-provenance,Build Provenance,devops-ci-cd,DevOps & CI/CD,Quality & Operations,build-provenance,no,planned,concept
+devops.canary-deployment,Canary Deployment,devops-ci-cd,DevOps & CI/CD,Quality & Operations,canary-deployment,no,planned,concept
+sre.observability,Observability,observability-sre,Observability & SRE,Quality & Operations,observability,yes,planned,concept
+sre.distributed-tracing,Distributed Tracing,observability-sre,Observability & SRE,Quality & Operations,distributed-tracing,no,planned,concept
+sre.service-level-objective,Service Level Objective (SLO),observability-sre,Observability & SRE,Quality & Operations,service-level-objective,no,planned,concept
+sre.error-budget,Error Budget,observability-sre,Observability & SRE,Quality & Operations,error-budget,no,planned,concept
+sre.root-cause-analysis,Root Cause Analysis,observability-sre,Observability & SRE,Quality & Operations,root-cause-analysis,no,planned,concept
+ai.tool-calling,Tool Calling,ai-llms-agents,"AI, LLMs & Agents",AI Engineering,tool-calling,yes,planned,concept
+ai.inference,Inference,ai-llms-agents,"AI, LLMs & Agents",AI Engineering,inference,no,planned,concept
+ai.embeddings,Embeddings,ai-llms-agents,"AI, LLMs & Agents",AI Engineering,embeddings,no,planned,concept
+ai.rag,Retrieval-Augmented Generation (RAG),ai-llms-agents,"AI, LLMs & Agents",AI Engineering,rag,no,planned,concept
+ai.prompt-injection,Prompt Injection,ai-llms-agents,"AI, LLMs & Agents",AI Engineering,prompt-injection,no,planned,concept
