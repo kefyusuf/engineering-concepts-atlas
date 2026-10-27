@@ -3,7 +3,11 @@ import assert from 'node:assert/strict';
 import { mkdtempSync, mkdirSync, writeFileSync, rmSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { tmpdir } from 'node:os';
-import { auditDist } from '../scripts/lib/dist-audit.mjs';
+import { auditDist as auditDistWithEnvironment } from '../scripts/lib/dist-audit.mjs';
+
+// Synthetic fixtures use a root-hosted layout unless a test opts into a Pages
+// base path. Isolate tests from GITHUB_PAGES and GITHUB_REPOSITORY in CI.
+const auditDist = (root, options) => auditDistWithEnvironment(root, { basePath: '', ...options });
 
 const routes = [
   '/', '/concept-index/',
