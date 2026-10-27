@@ -6,7 +6,7 @@ contentType: category
 This category belongs to **Programming Foundations**. It provides a navigational overview of five selected foundational and advanced terms.
 ## Catalog candidates
 > **Editorial status:** Catalog entries below are planned concepts, not independently reviewed articles. Pilot pages are clearly marked as drafts.
-- **Pure Function** — Planned; no article available yet.
+- [**Pure Function**](/functional-programming/pure-function/) — Editorial draft preview; independent review pending.
 - **Referential Transparency** — Planned; no article available yet.
 - **Immutability** — Planned; no article available yet.
 - **Closure** — Planned; no article available yet.

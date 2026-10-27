@@ -7,6 +7,8 @@ export const REQUIRED_ROUTES = [
   '/programming-language-concepts/idiomatic-programming/',
   '/concurrency-parallelism/atomic-operation/',
   '/distributed-systems/idempotency/',
+  '/type-systems/type-inference/',
+  '/functional-programming/pure-function/',
 ];
 
 function filesWithin(root) {
