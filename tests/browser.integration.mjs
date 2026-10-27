@@ -23,7 +23,7 @@ function fixture(run, breakSearch = false) {
 }
 
 test('headless browser follows authored routes and queries Pagefind runtime', { skip: !findBrowser() }, async () => {
-  const output = await fixture(root => runBrowserAudit(root));
+  const output = await fixture(root => runBrowserAudit(root, { basePath: '' }));
   assert.equal(output.pagesChecked, 6);
   assert.equal(output.pilotPagesChecked, 3);
   assert.equal(output.searchesChecked, 3);
@@ -31,5 +31,5 @@ test('headless browser follows authored routes and queries Pagefind runtime', { 
 });
 
 test('headless browser detects a search index that does not return the expected concept', { skip: !findBrowser() }, async () => {
-  await assert.rejects(() => fixture(root => runBrowserAudit(root), true), /Pagefind.*idiomatic/i);
+  await assert.rejects(() => fixture(root => runBrowserAudit(root, { basePath: '' }), true), /Pagefind.*idiomatic/i);
 });
