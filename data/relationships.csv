@@ -1,0 +1,19 @@
+source_concept_id,target_concept_id,relation_type,editorial_rationale
+programming.idiomatic-programming,programming.abstraction,related_to,Conventions influence how abstractions are expressed in a language.
+programming.mutation,functional.immutability,contrasts_with,State change versus prohibiting mutation of a value.
+programming.mutation,testing.mutation-testing,contrasts_with,Runtime state mutation is not source-code mutation for test assessment.
+concurrency.atomic-operation,concurrency.concurrency,related_to,Atomic primitives coordinate access to shared state under concurrency.
+concurrency.atomic-operation,concurrency.data-race,related_to,Atomic access affects data-race analysis for a location.
+concurrency.atomic-operation,db.acid,contrasts_with,Atomic shared-memory operations and ACID transaction atomicity have different scopes.
+concurrency.concurrency,concurrency.parallelism,contrasts_with,Interleaving progress differs from physical simultaneous execution.
+io.input-output,io.blocking-io,related_to,Blocking behavior is one I/O execution property.
+io.input-output,io.nonblocking-io,related_to,Nonblocking behavior is one I/O execution property.
+io.blocking-io,io.nonblocking-io,contrasts_with,Call wait behavior differs.
+distributed.idempotency,api.http-method-semantics,related_to,RFC 9110 defines idempotency for HTTP request methods.
+distributed.idempotency,concurrency.atomic-operation,contrasts_with,Safe retry of a logical operation is different from indivisible memory access.
+distributed.idempotency,db.acid,related_to,Transactions can support durable duplicate suppression but do not guarantee it alone.
+distributed.idempotency,api.webhook,related_to,Webhook consumers must consider duplicate delivery.
+db.transaction-isolation-levels,db.mvcc,related_to,MVCC can underpin transaction isolation implementations.
+security.owasp,security.attack-surface,related_to,OWASP offers guidance on assessing application attack surfaces.
+ai.tool-calling,ai.prompt-injection,related_to,Untrusted tool results can carry prompt-injection attempts.
+sre.observability,sre.distributed-tracing,related_to,Distributed traces are one form of observability telemetry.

@@ -1,0 +1,109 @@
+name: Validate M1.2 foundation
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+# Draft articles are public only as a clearly labelled, noindex editorial preview.
+# Production editorial approval remains a separate blocked gate.
+permissions:
+  contents: read
+
+jobs:
+  checks:
+    permissions:
+      contents: read
+    env:
+      GITHUB_PAGES: 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+
+      - name: Record toolchain and install dependencies
+        shell: bash
+        run: |
+          set -o pipefail
+          mkdir -p evidence/ci
+          {
+            echo "Node: $(node --version)"
+            echo "npm: $(npm --version)"
+            echo "Commit: $GITHUB_SHA"
+            echo "Run: $GITHUB_RUN_ID"
+          } | tee evidence/ci/environment.txt
+          # Bootstrap exception until the first genuine lockfile is committed.
+          npm install --no-audit --no-fund 2>&1 | tee evidence/ci/install.txt
+
+      - name: Test source and browser harness
+        shell: bash
+        run: |
+          set -o pipefail
+          npm run test 2>&1 | tee evidence/ci/tests.txt
+          npm run validate:content 2>&1 | tee evidence/ci/content.txt
+
+      - name: Verify browser harness independently
+        shell: bash
+        run: |
+          set -o pipefail
+          npm run test:browser 2>&1 | tee evidence/ci/browser-fixture.txt
+
+      - name: Check Astro content schemas
+        shell: bash
+        run: |
+          set -o pipefail
+          npm run check 2>&1 | tee evidence/ci/astro-check.txt
+
+      - name: Build and audit static output
+        shell: bash
+        run: |
+          set -o pipefail
+          npm run build 2>&1 | tee evidence/ci/astro-build.txt
+
+      - name: Verify actual Chromium and Pagefind behavior
+        shell: bash
+        run: |
+          set -o pipefail
+          npm run verify:browser 2>&1 | tee evidence/ci/browser-dist.txt
+
+      - name: Upload GitHub Pages preview only after all verification gates pass
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: dist/
+
+      # Preserve failed-stage logs as well as successful output for review.
+      # Artifact upload is not a publication or production deployment.
+      - name: Upload M1.2 evidence and preview artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: m1-2-verification-${{ github.run_id }}
+          if-no-files-found: warn
+          retention-days: 7
+          path: |
+            evidence/ci/
+            package-lock.json
+            dist/
+
+  deploy-preview:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: checks
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    concurrency:
+      group: github-pages-preview
+      cancel-in-progress: false
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy validated editorial preview
+        id: deployment
+        uses: actions/deploy-pages@v4

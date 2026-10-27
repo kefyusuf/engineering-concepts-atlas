@@ -1,0 +1,117 @@
+---
+{
+  "title": "Idiomatic Programming",
+  "description": "How language conventions differ from syntax rules, semantics, formatting and performance.",
+  "contentType": "concept",
+  "conceptId": "programming.idiomatic-programming",
+  "category": "programming-language-concepts",
+  "kind": "concept",
+  "aliases": [
+    "Idiomatic Code",
+    "Language Idioms"
+  ],
+  "related": [
+    {
+      "conceptId": "programming.abstraction",
+      "relation": "related_to"
+    }
+  ],
+  "editorialStatus": "draft",
+  "sources": [
+    {
+      "title": "Effective Go",
+      "url": "https://go.dev/doc/effective_go",
+      "role": "primary",
+      "scope": "Go community conventions and established patterns; not a language specification"
+    },
+    {
+      "title": "Go Code Review Comments",
+      "url": "https://go.dev/wiki/CodeReviewComments",
+      "role": "primary",
+      "scope": "Language-specific conventions and code review guidance"
+    },
+    {
+      "title": "PSR-12: Extended Coding Style",
+      "url": "https://www.php-fig.org/psr/psr-12/",
+      "role": "primary",
+      "scope": "PHP-FIG coding style standard; not a guarantee of code correctness"
+    }
+  ]
+}
+---
+
+:::caution[Editorial preview — not approved for publication]
+This is an M1 working draft. It has not passed independent technical/editorial review. Examples and citations must be re-checked before production release.
+:::
+
+## Precise definition
+
+*Idiomatic code* uses forms, control-flow patterns, naming and library conventions recognizable to developers in a **specified language and ecosystem**. It is a contextual evaluation of expression rather than a predicate imposed by the compiler. Code can be syntactically valid, type-safe and functionally correct while still feeling foreign to experienced maintainers.
+
+Scope matters: idiomatic Go and idiomatic PHP are not a single universal style. A team's preferences, framework conventions, public API rules and language version may also differ. The adjective should therefore name its context rather than claim automatic superiority.
+
+## Why it exists
+
+Translating a pattern word-for-word from another language can increase review time and hide exceptional paths. Shared conventions give engineers a common reading vocabulary. They reduce the mental cost of understanding unfamiliar code, but they do not remove the need for design decisions or runtime tests.
+
+## Mental model
+
+Grammar determines what a sentence may legally say; usage determines what sounds natural to fluent speakers. In code, the parser and type checker handle syntax and semantics, whereas idioms describe conventional expression. Unlike grammar, a convention may change across projects and time.
+
+## Mechanics and guarantees
+
+There is no generic runtime algorithm called *idiomaticity*. Rather, several layers interact:
+
+1. **Syntax:** the compiler/parser decides which programs are well formed.
+2. **Semantics:** the language defines how a valid program behaves.
+3. **Formatting:** deterministic tools such as `gofmt` arrange tokens consistently.
+4. **Lint and review:** a community or project flags patterns as hard to maintain.
+5. **Domain/API conventions:** frameworks and libraries introduce additional constraints.
+
+Passing a formatter is not proof of idiomatic design. Following a style standard does not prove that code is secure, fast or semantically correct. Idioms can also conflict with one another; explain the chosen context.
+
+## Worked example
+
+A common Go convention is to make errors explicit in return values. This example demonstrates how a call site handles a result and an error in a style familiar from Go's standard documentation.
+
+```go
+func loadTitle(path string) (string, error) {
+    data, err := os.ReadFile(path)
+    if err != nil {
+        return "", err
+    }
+    return strings.TrimSpace(string(data)), nil
+}
+```
+
+This snippet is **illustrative and not executed in this package**; it needs `os` and `strings` imports and a calling program. Its teaching claim concerns the familiar `(value, error)` and `if err != nil` convention, not a universal rule that every Go operation must use the same return shape.
+
+In PHP, a project may follow PSR-12 for formatting; it can still select different exception handling or domain modeling approaches. The style guide is not an architectural proof.
+
+## Failure modes
+
+- **False universality:** treating a Go convention as mandatory in every language.
+- **Tool confusion:** assuming formatting or lint success guarantees readability.
+- **Cargo culting:** copying a pattern without understanding when its constraints hold.
+- **Performance overclaim:** claiming that the shortest or most idiomatic solution is fastest without measurement.
+- **Version drift:** applying obsolete conventions to a newer language or standard-library API.
+
+## Trade-offs
+
+Idioms speed up team comprehension and ecosystem integration, but can be used dogmatically. When a local convention conflicts with proven correctness, accessibility, security or documented public APIs, the reason for an exception should be explicit. Optimize for maintainers and verified constraints, not an aesthetic score.
+
+## Related concepts
+
+**Syntax vs semantics:** a program may parse yet perform the wrong operation. **Convention vs contract:** a convention guides authors; a contract defines externally testable obligations. **Abstraction** is a separate planned article; idioms influence how an abstraction is expressed, not whether it is required.
+
+## Testing and verification
+
+Verify code behavior with ordinary tests; validate formatting and selected lint rules with static tooling. A review should ask: *Which language version and ecosystem? Which recommendation is normative versus optional? Can the claimed benefit be measured?* If presenting benchmark claims, provide measured inputs, hardware and statistical method.
+
+## References
+
+- [Effective Go](https://go.dev/doc/effective_go) — language-specific conventions and error handling.
+- [Go Code Review Comments](https://go.dev/wiki/CodeReviewComments) — review guidance, not compiler rules.
+- [PSR-12 Extended Coding Style](https://www.php-fig.org/psr/psr-12/) — PHP style conventions and interoperability goals.
+
+**Editorial status:** draft. No `reviewedAt` date is asserted.

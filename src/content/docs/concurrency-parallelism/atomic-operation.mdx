@@ -1,0 +1,114 @@
+---
+{
+  "title": "Atomic Operation",
+  "description": "Atomic read-modify-write, memory ordering, data races and invariants that atomics do not protect.",
+  "contentType": "concept",
+  "conceptId": "concurrency.atomic-operation",
+  "category": "concurrency-parallelism",
+  "kind": "concept",
+  "aliases": [
+    "Atomicity",
+    "Atomic Read-Modify-Write"
+  ],
+  "related": [
+    {
+      "conceptId": "concurrency.data-race",
+      "relation": "related_to"
+    },
+    {
+      "conceptId": "concurrency.concurrency",
+      "relation": "related_to"
+    },
+    {
+      "conceptId": "db.acid",
+      "relation": "contrasts_with"
+    }
+  ],
+  "editorialStatus": "draft",
+  "sources": [
+    {
+      "title": "Rust std::sync::atomic",
+      "url": "https://doc.rust-lang.org/std/sync/atomic/",
+      "role": "primary",
+      "scope": "Rust atomic types and general memory model considerations"
+    },
+    {
+      "title": "Rust atomic Ordering",
+      "url": "https://doc.rust-lang.org/std/sync/atomic/enum.Ordering.html",
+      "role": "primary",
+      "scope": "Rust atomic memory ordering semantics, including Relaxed and synchronization orderings"
+    }
+  ]
+}
+---
+
+:::caution[Editorial preview — not approved for publication]
+This is an M1 working draft; the Rust example is illustrative and must be compiled/tested in the intended target environment before publication.
+:::
+
+## Precise definition
+
+An atomic operation is an operation whose effect is indivisible in the **specified concurrency and memory model**. Atomicity applies to an identified operation on an identified location; it does not automatically establish a consistent snapshot across unrelated variables, nor does it imply database transaction atomicity.
+
+A conventional read-then-write sequence may comprise two individually valid accesses but still lose a concurrent update. An atomic read-modify-write primitive combines the relevant work under a stronger indivisibility guarantee.
+
+## Why it exists
+
+Imagine two workers updating a shared counter. Both load `10`, both compute `11`, and both store `11`. Although two increments were requested, the result is only `11`. Atomics provide primitives for correct shared-memory coordination, but only when the complete algorithm respects the model.
+
+## Mental model
+
+Think of a turnstile that counts each passage as one indivisible action. A counter may accurately report each passage, but two separate turnstiles do not thereby provide a consistent snapshot of everyone entering an entire building. A memory atom is a bounded guarantee, not an all-purpose transaction.
+
+## Mechanics and guarantees
+
+Atomic operations may include `load`, `store`, `swap`, `fetch_add` and **compare-and-swap** (CAS). The details differ by language, hardware and memory model.
+
+**Atomicity** and **ordering** answer different questions. `Relaxed` ordering preserves atomicity for the chosen variable but does not provide a synchronization relationship for unrelated non-atomic data. `Acquire`/`Release` are relevant to publication patterns; `SeqCst` imposes additional ordering constraints. Select the weakest sufficient ordering only when its proof is understood.
+
+Many atomic algorithms also have correctness hazards such as ABA: a location may change from A to B and back to A, making a comparison succeed despite an intervening change. Supported atomic widths are target-dependent.
+
+## Worked example
+
+Rust `AtomicUsize` offers an atomic increment. This is a minimal, **single-thread** assertion example; it does not prove a multi-worker algorithm.
+
+```rust
+use std::sync::atomic::{AtomicUsize, Ordering};
+
+fn main() {
+    let counter = AtomicUsize::new(0);
+    assert_eq!(counter.fetch_add(1, Ordering::Relaxed), 0);
+    assert_eq!(counter.load(Ordering::Relaxed), 1);
+}
+```
+
+The value returned by `fetch_add` is the *previous* value. Integer overflow and architecture-specific availability must be considered in larger programs.
+
+A realistic concurrency test would share the same atomic counter across `N` workers, perform `M` increments per worker, join all workers and assert a final value of `N × M`, assuming that target support and overflow constraints hold.
+
+## Failure modes
+
+- **Multi-field invariant:** atomic writes to `balance` and `reserved` need not preserve a constraint spanning both fields.
+- **Incorrect publication:** relaxed atomic flags do not synchronize unrelated payload memory.
+- **CAS/ABA:** a comparison can succeed after intervening state changes if the algorithm does not account for them.
+- **Mixed access:** unsynchronized atomic and non-atomic access can violate safety assumptions.
+- **Target mismatch:** chosen types and instructions may have different supported widths and performance.
+
+## Trade-offs
+
+Atomic counters and flags can reduce lock overhead for narrow problems, but lock-free code may be harder to prove and maintain. A mutex or message-passing design is often safer for multi-step state transitions. A correct mutex design can outperform a badly contended atomic algorithm: measure workload-specific performance rather than assuming atomics are always faster.
+
+## Related concepts
+
+**Concurrency** describes coordinating multiple tasks; **data races** describe conflicting unsynchronized accesses. **Database ACID atomicity** refers to all-or-nothing transaction behavior, which has a different scope and failure model. **Idempotency** addresses duplicate logical effects across repeated requests; it is not a synonym for indivisible execution. See the [Idempotency preview](/distributed-systems/idempotency/).
+
+## Testing and verification
+
+Test sequential return values, a joined multi-worker increment count, overflow assumptions and platform portability. For multi-variable invariants, write a reproducible interleaving that violates the intended rule, then test a coordination fix. Stress testing may find races but cannot exhaustively prove the algorithm: use available thread/data-race tooling and reason explicitly about memory ordering.
+
+## References
+
+- [Rust atomic module](https://doc.rust-lang.org/std/sync/atomic/) — types, guarantees and platform notes.
+- [Rust Ordering enum](https://doc.rust-lang.org/std/sync/atomic/enum.Ordering.html) — atomic ordering semantics.
+
+**Editorial status:** draft. No `reviewedAt` date is asserted.

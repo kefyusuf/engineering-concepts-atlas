@@ -1,0 +1,8 @@
+concept_id,claim_area,source_url,source_kind,source_scope,review_outcome
+programming.idiomatic-programming,language conventions,https://go.dev/doc/effective_go,primary implementation guidance,Go only,Supported within Go context
+programming.idiomatic-programming,error and review conventions,https://go.dev/wiki/CodeReviewComments,primary community practice,Go only,Supported within Go context
+concurrency.atomic-operation,atomic access semantics,https://doc.rust-lang.org/std/sync/atomic/,primary runtime docs,Rust atomics,Supported within Rust context
+concurrency.atomic-operation,ordering and visibility,https://doc.rust-lang.org/std/sync/atomic/enum.Ordering.html,primary runtime docs,Rust ordering,Supported; does not imply whole-workflow atomicity
+distributed.idempotency,idempotent HTTP method semantics,https://www.rfc-editor.org/rfc/rfc9110#section-9.2.2,normative standard,HTTP methods,Supported; not a general payment contract
+distributed.idempotency,Idempotency-Key emerging HTTP header behavior,https://datatracker.ietf.org/doc/draft-ietf-httpapi-idempotency-key-header/,standards draft,Internet-Draft -08 as of 2026-10-27,Informative only; not an issued RFC
+distributed.idempotency,provider response replay distinctions,https://docs.stripe.com/api/idempotent_requests,primary vendor documentation,Stripe API v1 versus API v2,Supported; cannot generalize to all providers
