@@ -1,0 +1,145 @@
+---
+{
+  "title": "Type Inference",
+  "description": "Compile-time type inference, contextual typing, annotations, unsafe boundaries, and TypeScript/Rust failure modes.",
+  "contentType": "concept",
+  "conceptId": "types.type-inference",
+  "category": "type-systems",
+  "kind": "concept",
+  "aliases": [
+    "Static Type Inference",
+    "Contextual Typing"
+  ],
+  "related": [
+    {
+      "conceptId": "programming.generics",
+      "relation": "related_to"
+    },
+    {
+      "conceptId": "types.structural-typing",
+      "relation": "related_to"
+    }
+  ],
+  "editorialStatus": "draft",
+  "sources": [
+    {
+      "title": "TypeScript Handbook — Type Inference",
+      "url": "https://www.typescriptlang.org/docs/handbook/type-inference",
+      "role": "primary",
+      "scope": "TypeScript initializer, contextual and common-type inference"
+    },
+    {
+      "title": "TypeScript Handbook — Everyday Types",
+      "url": "https://www.typescriptlang.org/docs/handbook/2/everyday-types.html",
+      "role": "primary",
+      "scope": "TypeScript variable and callback parameter inference"
+    },
+    {
+      "title": "The Rust Programming Language — Data Types",
+      "url": "https://doc.rust-lang.org/book/ch03-02-data-types.html",
+      "role": "primary",
+      "scope": "Rust inference and explicit annotations for ambiguous expressions"
+    }
+  ]
+}
+---
+
+:::caution[Editorial preview — not approved for publication]
+This article is an M1.3 working draft. Code and source scopes require independent editorial review before a production release.
+:::
+
+## Precise definition
+
+**Type inference** is the compile-time process of deriving a static type for an expression or binding from the language's rules, surrounding context, constraints and known declarations, without requiring that type to be written everywhere. It does **not** imply dynamic typing: TypeScript and Rust both perform static type checking while inferring many types.
+
+An inference result is only as strong as the information available to the checker. Inferring an unsafe top-like type (for example, TypeScript's **any** from a loosely typed boundary) does not turn untrusted runtime data into validated application data. TypeScript types are erased from ordinary emitted JavaScript; they do not automatically validate JSON at runtime.
+
+## Why it exists
+
+Repeating obvious types across every local binding is noisy and increases maintenance effort. Inference lets the compiler reuse information already present in initializers, called functions, expected parameter types and return expressions. More important than fewer keystrokes, inference can propagate useful restrictions through code while retaining type checking.
+
+## Mental model
+
+Think of a constraint puzzle: a value is initialized from a number, passed to a function accepting numbers and used in arithmetic. These observations help the compiler determine its static type. The metaphor has a limit: the compiler only reasons from *declared/static* information, not from a guarantee that an external payload really obeys a declaration.
+
+## Mechanics and guarantees
+
+1. **Initializer inference.** TypeScript infers a local binding from the initializer. Widening rules mean a mutable binding initialized with a string is often inferred as **string**, whereas a **const** primitive binding can retain a literal type.
+2. **Contextual typing.** Expected types flow in the opposite direction. An array method's callback parameter can inherit its type from the method signature.
+3. **Generic inference.** Type parameters may be deduced from call arguments. This differs from the separate design concern of *what* a generic abstraction promises.
+4. **Constraint solving.** A compiler combines known constraints; behavior differs by language. When the constraints do not identify a usable type, a diagnostic or explicit annotation may be required.
+5. **Runtime boundary.** Inference does not inspect JSON, validate an API response, or prove that values produced by unchecked JavaScript obey static declarations.
+
+Guarantees are scoped to a particular language version and compiler settings. In TypeScript, strict checking matters. Structural assignability and TypeScript's known unsoundness trade-offs are separate concerns from whether a type was inferred or annotated.
+
+## Worked example
+
+The following TypeScript example targets a project configured with **strict: true**. The callback argument **label** is inferred as **string**; the function's return is inferred as **number**. Explicit **unknown** at the external boundary requires a runtime guard.
+
+~~~ts
+const labels = ["left", "right"];
+const upper = labels.map((label) => label.toUpperCase());
+
+function toCents(amount: number) {
+  return Math.round(amount * 100);
+}
+const cents = [1.25, 2.50].map(toCents);
+
+const parsed: unknown = JSON.parse('{"quantity":2}');
+function hasQuantity(value: unknown): value is { quantity: number } {
+  return typeof value === "object" &&
+    value !== null &&
+    "quantity" in value &&
+    typeof value.quantity === "number";
+}
+if (hasQuantity(parsed)) {
+  const doubled: number = parsed.quantity * 2;
+  console.log(doubled, upper, cents);
+}
+~~~
+
+Here is a contrasting Rust example. Rust generally infers local static types, but **parse** needs enough type information to select the intended result type. The annotation below resolves that ambiguity.
+
+~~~rust
+fn main() {
+    let count = 42; // Usually inferred as i32 through integer defaults.
+    let parsed: u32 = "42".parse().expect("valid decimal number");
+    assert_eq!(count + 1, 43);
+    assert_eq!(parsed, 42);
+}
+~~~
+
+**Verification boundary:** The repository CI checks the TypeScript example as a compile-time fixture. The Rust snippet is explanatory and is not compiled in this repository.
+
+## Failure modes
+
+- **Mistaking inference for runtime validation:** a value from JSON may carry a permissive static type while containing malformed data.
+- **Implicit any:** missing library declarations or untyped boundaries can lose safety without sufficient compiler options.
+- **Widening surprises:** a literal-valued binding and a mutable variable do not always retain the same narrow type.
+- **Ambiguous inference:** generic parsing or overloaded APIs may require a type annotation.
+- **Opaque API contracts:** a locally inferred return type can be correct but still fail to communicate intended public compatibility constraints.
+- **Language transfer:** Rust's inference and TypeScript's inference are different algorithms with different rules; neither dictates the other's guarantees.
+
+## Trade-offs
+
+Inference reduces duplication and can make local refactoring more ergonomic. Explicit annotations are still valuable at public module boundaries, security-sensitive input boundaries, recursive definitions or where preserving a deliberate contract is more important than inferring a changing implementation. Repeatedly asserting a type is not a substitute for checking untrusted data.
+
+## Related concepts
+
+**Generic programming** allows logic to be parameterized by types; **generic inference** is how a checker sometimes chooses type arguments for a call. **Type narrowing** refines what the checker knows after control-flow checks. **Structural typing** asks whether the shapes of types are compatible; it is not the process of inferring them. These are cataloged separately; planned concepts do not become reviewed articles merely because they are mentioned here.
+
+## Testing and verification
+
+- Compile the TypeScript example with **strict** checking and **noEmit**; there should be no diagnostics.
+- Introduce a deliberate type error, such as assigning a string to an inferred number; the compiler should reject it.
+- At runtime, try malformed JSON and verify that the guard rejects values whose **quantity** is not numeric.
+- Verify that changing the TypeScript compiler options changes diagnostics only when intended; static checking and runtime validation are separate tests.
+- Where Rust is taught, compile the annotated example separately and remove the annotation to observe the ambiguity described in the Rust book.
+
+## References
+
+- [TypeScript Handbook — Type Inference](https://www.typescriptlang.org/docs/handbook/type-inference) — contextual typing, common type inference and expression types.
+- [TypeScript Handbook — Everyday Types](https://www.typescriptlang.org/docs/handbook/2/everyday-types.html) — inferred variable types and contextual callback parameters.
+- [Rust Book — Data Types](https://doc.rust-lang.org/book/ch03-02-data-types.html) — static type inference and cases requiring annotations.
+
+**Editorial status:** draft. No review completion date is claimed.

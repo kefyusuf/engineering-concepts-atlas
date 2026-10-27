@@ -7,7 +7,9 @@ const categories = [...new Set(loadCatalog(root).concepts.map(row => row.categor
 const routes = ['/', '/about/', '/concept-index/', ...categories.map(c => `/${c}/`),
   '/programming-language-concepts/idiomatic-programming/',
   '/concurrency-parallelism/atomic-operation/',
-  '/distributed-systems/idempotency/'];
+  '/distributed-systems/idempotency/',
+  '/type-systems/type-inference/',
+  '/functional-programming/pure-function/'];
 try {
   const result = await runBrowserAudit(resolve(root, 'dist'), { routes });
   console.log('Browser smoke PASS:', JSON.stringify(result, null, 2));

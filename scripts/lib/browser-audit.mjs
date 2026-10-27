@@ -10,16 +10,22 @@ const DEFAULT_ROUTES = [
   '/programming-language-concepts/idiomatic-programming/',
   '/concurrency-parallelism/atomic-operation/',
   '/distributed-systems/idempotency/',
+  '/type-systems/type-inference/',
+  '/functional-programming/pure-function/',
 ];
 const SEARCHES = [
   ['idiomatic', '/programming-language-concepts/idiomatic-programming/'],
   ['atomic operation', '/concurrency-parallelism/atomic-operation/'],
   ['idempotency', '/distributed-systems/idempotency/'],
+  ['type inference', '/type-systems/type-inference/'],
+  ['pure function', '/functional-programming/pure-function/'],
 ];
 const PILOT_TITLES = new Map([
   ['/programming-language-concepts/idiomatic-programming/', 'Idiomatic Programming'],
   ['/concurrency-parallelism/atomic-operation/', 'Atomic Operation'],
   ['/distributed-systems/idempotency/', 'Idempotency'],
+  ['/type-systems/type-inference/', 'Type Inference'],
+  ['/functional-programming/pure-function/', 'Pure Function'],
 ]);
 const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 

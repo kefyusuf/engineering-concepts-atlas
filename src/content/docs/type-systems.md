@@ -6,7 +6,7 @@ contentType: category
 This category belongs to **Programming Foundations**. It provides a navigational overview of five selected foundational and advanced terms.
 ## Catalog candidates
 > **Editorial status:** Catalog entries below are planned concepts, not independently reviewed articles. Pilot pages are clearly marked as drafts.
-- **Type Inference** — Planned; no article available yet.
+- [**Type Inference**](/type-systems/type-inference/) — Editorial draft preview; independent review pending.
 - **Covariance** — Planned; no article available yet.
 - **Contravariance** — Planned; no article available yet.
 - **Structural Typing** — Planned; no article available yet.

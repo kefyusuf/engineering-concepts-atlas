@@ -1,0 +1,138 @@
+---
+{
+  "title": "Pure Function",
+  "description": "Referential transparency, side-effect boundaries, local mutation, testability, and idempotency distinctions.",
+  "contentType": "concept",
+  "conceptId": "functional.pure-function",
+  "category": "functional-programming",
+  "kind": "concept",
+  "aliases": [
+    "Function Purity",
+    "Pure Computation"
+  ],
+  "related": [
+    {
+      "conceptId": "functional.referential-transparency",
+      "relation": "related_to"
+    },
+    {
+      "conceptId": "functional.immutability",
+      "relation": "related_to"
+    },
+    {
+      "conceptId": "distributed.idempotency",
+      "relation": "contrasts_with"
+    }
+  ],
+  "editorialStatus": "draft",
+  "sources": [
+    {
+      "title": "React — Keeping Components Pure",
+      "url": "https://react.dev/learn/keeping-components-pure",
+      "role": "primary",
+      "scope": "Local mutation, repeatable results and observable effects in React render computations"
+    },
+    {
+      "title": "React — Components and Hooks Must Be Pure",
+      "url": "https://react.dev/reference/rules/components-and-hooks-must-be-pure",
+      "role": "primary",
+      "scope": "React purity constraints and side-effect boundaries; framework-specific application"
+    }
+  ]
+}
+---
+
+:::caution[Editorial preview — not approved for publication]
+This article is an M1.3 working draft. Its semantics, implementation notes and sources require independent review before a production release.
+:::
+
+## Precise definition
+
+A **pure function** produces the same result for the same fully specified inputs and has no *observable side effects*. Calling it does not modify caller-owned state, perform externally visible I/O, depend on ambient mutable state, or alter the surrounding world. Its result can be substituted for a call without changing the observable behavior of the program, assuming the relevant evaluation model.
+
+Purity is a property of a function's behavior **under defined assumptions**. A function written in a language with mutable variables can still be pure if it only mutates temporary values that do not escape; conversely, a function that does not contain a visible assignment may be impure if it reads the clock, randomness, mutable global state or a network service.
+
+## Why it exists
+
+Hidden dependencies make repeated executions hard to reproduce. A calculation that silently reads a mutable global discount rate may return different values for the same argument; a calculation that silently updates inventory can produce surprise effects during retries, speculative rendering or unit tests. Keeping the calculation pure separates business rules from orchestration and I/O.
+
+## Mental model
+
+A mathematical formula depends on its arguments rather than the time it is evaluated. The analogy is useful, but incomplete: real programming involves numerical precision, exceptions, resources and effects. A function that throws in a defined case may still be analyzed in an effect-aware model; this article uses the ordinary practical engineering definition, not a universal theorem across all programming-language semantics.
+
+## Mechanics and guarantees
+
+1. **Explicit inputs.** Every value that changes the outcome is passed as an argument or otherwise included in the specified immutable environment.
+2. **No external mutation.** Inputs and caller-owned objects remain unchanged. New local arrays or objects may be built and mutated *before* they are exposed.
+3. **No observable I/O.** Database writes, HTTP calls, file writes and logging are observable effects and must be handled outside the pure calculation.
+4. **Stable result.** Identical inputs lead to equivalent results under the chosen semantics. Floating-point rounding, locale rules and dependency versions must be treated as part of the environment where they matter.
+5. **Composability.** Pure functions can be safely used as building blocks in deterministic transformations. Memoization can reuse their results when the cache key captures every relevant input, but the memoization implementation itself has resource and state effects.
+
+Purity does not guarantee that the function is fast, secure, free of exceptions, terminating, or mathematically idempotent.
+
+## Worked example
+
+The following **JavaScript** snippet can execute in Node.js. The calculation does not mutate its input, and the example freezes shared inputs to catch accidental changes during development.
+
+~~~js
+function subtotal(lines) {
+  return lines.reduce(
+    (sum, line) => sum + line.unitPrice * line.quantity,
+    0
+  );
+}
+
+const order = Object.freeze([
+  Object.freeze({ unitPrice: 100, quantity: 2 }),
+  Object.freeze({ unitPrice: 50, quantity: 1 }),
+]);
+if (subtotal(order) !== 250) throw new Error("unexpected subtotal");
+if (subtotal(order) !== subtotal(order)) throw new Error("unstable result");
+~~~
+
+This **impure** counterexample looks like a calculation but depends on mutable state outside the call.
+
+~~~js
+let currentDiscount = 0.10;
+function priceAfterDiscount(amount) {
+  return amount * (1 - currentDiscount);
+}
+// Changing currentDiscount changes the result for the same amount.
+~~~
+
+A practical application can call pure **subtotal** inside an impure order handler that reads from a database and persists a transaction. The handler is not thereby pure; the calculation remains easier to test independently.
+
+## Failure modes
+
+- **Ambient state:** reading the current time or a mutable configuration value without passing it as an input.
+- **Input mutation:** sorting the caller's array in place or altering objects passed as arguments.
+- **I/O hidden in helpers:** a helper that logs, reads disk or invokes a service is effectful even if its caller appears declarative.
+- **Misleading memoization:** caching without a complete key can return stale or incorrect results.
+- **Purity by annotation:** TypeScript type signatures alone do not prove that a JavaScript function is pure.
+- **Shallow freeze assumptions:** freezing a containing object is not a recursive guarantee for all nested state.
+
+## Trade-offs
+
+Pure core / impure shell is a useful engineering boundary, not a mandate to eliminate all mutation. Copying large data structures may add allocations; managing external side effects requires orchestration, retries and transaction boundaries. When performance demands mutation, localized mutation with explicit ownership may maintain the intended external purity.
+
+## Related concepts
+
+**Referential transparency** describes the substitution property associated with pure expressions. **Immutability** concerns whether values may change; it supports reasoning about purity but is not equivalent to it. **Idempotency** describes repeated application yielding the same intended effect: a pure function such as **increment(x) = x + 1** is *not* mathematically idempotent because applying it twice changes the result. Likewise, a repeat-safe network operation may still have observable effects and is not a pure function.
+
+The separate [Idempotency preview](/distributed-systems/idempotency/) explains the request/retry scope of that term. **Mutation** is not automatically a violation if it is confined to newly created local data and invisible to callers.
+
+## Testing and verification
+
+- Execute the example repeatedly with the same frozen input and assert the identical output.
+- Assert that the original input objects and arrays are unchanged after calling the function.
+- Vary each explicit input and verify results against small independently computed cases.
+- Replace or vary global configuration and assert that a genuinely pure calculation does not change.
+- Code review must still inspect all called functions: tests can show counterexamples but cannot establish purity for every possible execution.
+- Compare pure **subtotal** against the impure discount example to ensure the distinction remains explicit.
+
+## References
+
+- [React — Keeping Components Pure](https://react.dev/learn/keeping-components-pure) — purity, local mutation and non-local side effects in rendering.
+- [React — Components and Hooks Must Be Pure](https://react.dev/reference/rules/components-and-hooks-must-be-pure) — repeated rendering guarantees and effect boundaries.
+
+**Editorial status:** draft. No review completion date is claimed.
