@@ -1,5 +1,6 @@
 import { defineConfig } from 'astro/config';
 import starlight from '@astrojs/starlight';
+import { unified } from '@astrojs/markdown-remark';
 import { existsSync } from 'node:fs';
 import { loadCatalog, taxonomy } from './scripts/lib/catalog.mjs';
 import { pagesConfig, rebaseDocumentLinks } from './scripts/lib/pages-config.mjs';
@@ -11,7 +12,7 @@ const pages = pagesConfig();
 export default defineConfig({
   ...(pages.site ? { site: pages.site } : {}),
   base: pages.base || '/',
-  markdown: { rehypePlugins: [() => rebaseDocumentLinks(pages.base)] },
+  markdown: { processor: unified(), rehypePlugins: [() => rebaseDocumentLinks(pages.base)] },
   // No server adapter: the M1 site is entirely static.
   integrations: [
     starlight({
