@@ -8,6 +8,8 @@ export const REQUIRED_ROUTES = [
   '/concurrency-parallelism/atomic-operation/',
   '/distributed-systems/idempotency/',
   '/type-systems/type-inference/',
+  '/oop-design-patterns/observer-pattern/',
+  '/operating-systems-memory/virtual-memory/',
   '/functional-programming/pure-function/',
 ];
 

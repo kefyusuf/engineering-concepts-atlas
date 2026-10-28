@@ -12,6 +12,8 @@ const DEFAULT_ROUTES = [
   '/distributed-systems/idempotency/',
   '/type-systems/type-inference/',
   '/functional-programming/pure-function/',
+  '/oop-design-patterns/observer-pattern/',
+  '/operating-systems-memory/virtual-memory/',
 ];
 const SEARCHES = [
   ['idiomatic', '/programming-language-concepts/idiomatic-programming/'],
@@ -19,6 +21,8 @@ const SEARCHES = [
   ['idempotency', '/distributed-systems/idempotency/'],
   ['type inference', '/type-systems/type-inference/'],
   ['pure function', '/functional-programming/pure-function/'],
+  ['observer pattern', '/oop-design-patterns/observer-pattern/'],
+  ['virtual memory', '/operating-systems-memory/virtual-memory/'],
 ];
 const PILOT_TITLES = new Map([
   ['/programming-language-concepts/idiomatic-programming/', 'Idiomatic Programming'],
@@ -26,6 +30,8 @@ const PILOT_TITLES = new Map([
   ['/distributed-systems/idempotency/', 'Idempotency'],
   ['/type-systems/type-inference/', 'Type Inference'],
   ['/functional-programming/pure-function/', 'Pure Function'],
+  ['/oop-design-patterns/observer-pattern/', 'Observer Pattern'],
+  ['/operating-systems-memory/virtual-memory/', 'Virtual Memory'],
 ]);
 const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 

@@ -6,7 +6,7 @@ contentType: category
 This category belongs to **Runtime & Systems**. It provides a navigational overview of five selected foundational and advanced terms.
 ## Catalog candidates
 > **Editorial status:** Catalog entries below are planned concepts, not independently reviewed articles. Pilot pages are clearly marked as drafts.
-- **Virtual Memory** — Planned; no article available yet.
+- [**Virtual Memory**](/operating-systems-memory/virtual-memory/) — Editorial draft preview; independent review pending.
 - **Process** — Planned; no article available yet.
 - **Thread** — Planned; no article available yet.
 - **Memory Leak** — Planned; no article available yet.

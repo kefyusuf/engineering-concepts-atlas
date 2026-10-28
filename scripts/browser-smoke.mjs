@@ -9,6 +9,8 @@ const routes = ['/', '/about/', '/concept-index/', ...categories.map(c => `/${c}
   '/concurrency-parallelism/atomic-operation/',
   '/distributed-systems/idempotency/',
   '/type-systems/type-inference/',
+  '/oop-design-patterns/observer-pattern/',
+  '/operating-systems-memory/virtual-memory/',
   '/functional-programming/pure-function/'];
 try {
   const result = await runBrowserAudit(resolve(root, 'dist'), { routes });

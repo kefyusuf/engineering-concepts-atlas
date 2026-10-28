@@ -1,0 +1,144 @@
+---
+{
+  "title": "Virtual Memory",
+  "description": "Virtual address spaces, page-table translations, MMU and TLB behavior, page faults, protection and mapping limits.",
+  "contentType": "concept",
+  "conceptId": "os.virtual-memory",
+  "category": "operating-systems-memory",
+  "kind": "concept",
+  "aliases": [
+    "Virtual Address Space",
+    "Paged Virtual Memory"
+  ],
+  "related": [
+    {
+      "conceptId": "os.process",
+      "relation": "related_to"
+    },
+    {
+      "conceptId": "os.copy-on-write",
+      "relation": "related_to"
+    },
+    {
+      "conceptId": "os.memory-leak",
+      "relation": "related_to"
+    }
+  ],
+  "editorialStatus": "draft",
+  "sources": [
+    {
+      "title": "Linux Kernel Documentation — Memory management concepts overview",
+      "url": "https://docs.kernel.org/admin-guide/mm/concepts.html",
+      "role": "primary",
+      "scope": "Linux virtual memory, address spaces, page tables, demand paging and memory protection"
+    },
+    {
+      "title": "Linux Kernel Documentation — Page Tables",
+      "url": "https://docs.kernel.org/mm/page_tables.html",
+      "role": "primary",
+      "scope": "Linux page-table hierarchies, MMU/TLB, page faults, copy-on-write and invalid accesses"
+    },
+    {
+      "title": "Linux manual — mmap(2)",
+      "url": "https://man7.org/linux/man-pages/man2/munmap.2.html",
+      "role": "primary",
+      "scope": "Linux virtual address space mappings and protections via mmap/munmap"
+    }
+  ]
+}
+---
+
+:::caution[Editorial preview — not approved for publication]
+This M1.3 article is a technical working draft. Architecture and Linux-specific claims require independent review before production publication.
+:::
+
+## Precise definition
+
+**Virtual memory** is an operating-system and hardware-supported abstraction that lets software address a *virtual address space* rather than manipulate physical RAM addresses directly. In a paged implementation, translations map virtual pages to physical page frames; the mapping and permission rules are maintained through page tables and supported by the memory management unit (MMU).
+
+A process may have a large virtual address space without allocating an equivalent amount of physical RAM. Some regions remain unmapped, some are mapped but not resident, and some physical pages are shared between address spaces. **Virtual memory is not simply swap space**. Swap is only one possible mechanism for managing backing storage under memory pressure.
+
+## Why it exists
+
+Applications need memory isolation, controlled sharing, efficient loading and a consistent way to lay out stacks, heaps, program code and mapped files. A system running several programs must prevent one ordinary user-space process from reading another's private pages while allowing shared libraries and explicitly shared mappings where authorized.
+
+Virtual addresses decouple the process's view from RAM placement. They also support lazy allocation, copy-on-write and file-backed mappings. None of those implies unlimited physical memory, free address translation, or guaranteed allocation under memory pressure.
+
+## Mental model
+
+A virtual address is similar to a numbered shelf position in an application's private catalog. The physical storage unit can live elsewhere; a translation table says where and under which permissions it can be reached. The model is limited: translation depends on CPU architecture, access permissions, page size, cache state and kernel fault handling.
+
+## Mechanics and guarantees
+
+1. **Virtual address:** CPU instructions use virtual addresses in ordinary user-space execution. The address is split conceptually into a *virtual page number* and an *offset within that page*.
+2. **Translation:** the MMU consults cached translations (a TLB where supported) and/or page tables to locate a physical frame and check permissions.
+3. **Page tables:** mappings may be multi-level to avoid allocating a flat table for sparse address spaces. The exact number of levels and page sizes depend on the architecture and kernel configuration.
+4. **Demand paging:** a mapped page need not already have a physical frame resident. On a valid page fault, the kernel may allocate or load the page and resume the instruction.
+5. **Copy-on-write:** processes may initially share physical pages; a write can cause a fault and creation of a private copy when required.
+6. **Protection:** read/write/execute permissions and process ownership constrain access. A protection fault or invalid address may terminate a Linux process with **SIGSEGV**, but a page fault alone is not necessarily an application bug.
+7. **Mappings:** Linux **mmap** creates a new mapping in the caller's virtual address space and supports anonymous or file-backed regions with distinct sharing semantics.
+8. **Pressure:** physical memory, commit/accounting policies, swap availability and the OOM policy still impose finite limits.
+
+**Guarantee boundary:** this is a conceptual model and Linux-informed account, not a statement that every platform implements identical page sizes, residency policies or exception behavior. A TLB hit improves translation lookup but does not by itself guarantee the referenced data is in an application CPU cache.
+
+## Worked example
+
+This runnable JavaScript program is a **page-number arithmetic illustration**, not a virtual-memory emulator. It models a hypothetical 4096-byte page size and a known mapping for page 7.
+
+~~~js
+const pageSize = 4096;
+const mapping = new Map([[7, 23]]); // Virtual page 7 -> physical frame 23.
+
+function translate(virtualAddress) {
+  if (!Number.isSafeInteger(virtualAddress) || virtualAddress < 0) {
+    throw new RangeError("virtual address must be a nonnegative safe integer");
+  }
+  const virtualPage = Math.floor(virtualAddress / pageSize);
+  const offset = virtualAddress % pageSize;
+  const physicalFrame = mapping.get(virtualPage);
+  if (physicalFrame === undefined) throw new RangeError("unmapped virtual page");
+  return physicalFrame * pageSize + offset;
+}
+
+const first = translate(7 * pageSize + 37);
+if (first !== 23 * pageSize + 37) throw new Error("translation error");
+~~~
+
+The translation preserves the page offset. It *omits* MMU hardware, TLB invalidation, permissions, page-table traversal, valid-but-nonresident faults, sharing and kernel allocation. Do not infer real process addresses or memory residency from this arithmetic exercise.
+
+For observation on Linux, `/proc/<pid>/maps` describes virtual mappings (subject to process access permissions); mapping size alone is not identical to resident set size. Tools such as **mincore(2)** can provide a momentary page-residency snapshot, not a permanent guarantee.
+
+## Failure modes
+
+- **Confusing reservation with residency:** large virtual address ranges do not imply equal RAM usage.
+- **Assuming page fault means crash:** valid faults can resolve lazily; invalid/prohibited accesses cannot be treated as ordinary recoverable mappings.
+- **Address space exhaustion:** memory allocation may fail due to virtual layout, limits or commit policies even when free physical memory remains.
+- **Translation overhead:** TLB misses and page-table walks can be significant for random memory access patterns.
+- **Memory pressure:** faults requiring I/O and swapping can increase latency; OOM handling may terminate processes.
+- **Wrong page-size assumptions:** 4096 bytes is a common example, not a universal constant.
+- **Protection confusion:** virtual isolation is a foundation, not a complete defense against memory corruption, side channels or kernel bugs.
+
+## Trade-offs
+
+Virtual memory enables isolation, sharing, sparse allocations and lazy loading, but page tables and TLB maintenance consume memory and CPU time. Large/huge pages can reduce translation overhead for some workloads at the cost of flexibility and fragmentation. Locked/pinned pages avoid certain faults but increase resource pressure. The right decision is workload-dependent.
+
+## Related concepts
+
+**Physical memory** is hardware RAM; **virtual address space** is the process-facing range of addresses and mappings. **Memory-mapped I/O** may mean device register mapping rather than ordinary file-backed mmap; distinguish these uses. **Copy-on-write** defers copying when pages are shared. **Memory leak** describes retained or unreclaimed resources and should not be diagnosed solely from a large virtual address range. **Page cache** stores file contents and participates in mapped-file behavior but is not equivalent to the process's complete address space.
+
+## Testing and verification
+
+- Execute the conceptual translation example and confirm the virtual offset survives.
+- For an unmapped virtual page, assert an exception rather than inventing a physical frame.
+- Check an invalid negative or fractional virtual address is rejected.
+- On Linux only, compare **/proc/self/maps** with available memory-residency measurements; document the permissions and environmental restrictions.
+- Distinguish valid demand faults from invalid access faults in a controlled native program; do not deliberately crash application processes in shared CI.
+- If making performance claims, profile TLB miss rates or page-fault counters on specified hardware and input workloads, not only a JavaScript toy example.
+
+## References
+
+- [Linux Kernel: Memory Management Concepts](https://docs.kernel.org/admin-guide/mm/concepts.html) — virtual/physical addresses, page tables, demand paging.
+- [Linux Kernel: Page Tables](https://docs.kernel.org/mm/page_tables.html) — translation caches, page faults and Linux mapping model.
+- [Linux man-pages: mmap(2)](https://man7.org/linux/man-pages/man2/munmap.2.html) — mapping creation, flags and permissions.
+
+**Editorial status:** draft. No independent reviewer or completed review date is claimed.

@@ -1,0 +1,147 @@
+---
+{
+  "title": "Observer Pattern",
+  "description": "Subscription, synchronous notification, callback ordering, unsubscription, reentrancy and delivery guarantees.",
+  "contentType": "concept",
+  "conceptId": "patterns.observer-pattern",
+  "category": "oop-design-patterns",
+  "kind": "concept",
+  "aliases": [
+    "Observer",
+    "Publisher-Subscriber (in-process)",
+    "Subject-Observer"
+  ],
+  "related": [
+    {
+      "conceptId": "patterns.composition",
+      "relation": "related_to"
+    },
+    {
+      "conceptId": "distributed.idempotency",
+      "relation": "related_to"
+    }
+  ],
+  "editorialStatus": "draft",
+  "sources": [
+    {
+      "title": "Microsoft Learn — Observer design pattern",
+      "url": "https://learn.microsoft.com/en-us/dotnet/standard/events/observer-design-pattern",
+      "role": "primary",
+      "scope": "Observer subscriptions, IObservable/IObserver, subscription lifecycle and push-based notifications in .NET"
+    },
+    {
+      "title": "Microsoft Learn — IObservable<T>",
+      "url": "https://learn.microsoft.com/en-us/dotnet/api/system.iobservable-1",
+      "role": "primary",
+      "scope": "Provider and observer registration, disposal and notification contract in .NET"
+    },
+    {
+      "title": "Refactoring.Guru — Observer",
+      "url": "https://refactoring.guru/design-patterns/observer",
+      "role": "secondary",
+      "scope": "Language-agnostic behavioral pattern structure and general design trade-offs"
+    }
+  ]
+}
+---
+
+:::caution[Editorial preview — not approved for publication]
+This M1.3 article is a technical working draft. External references and implementation claims need independent editorial review before the production release.
+:::
+
+## Precise definition
+
+The **Observer pattern** defines a relationship in which a subject (publisher/provider) maintains subscriptions and notifies observers (listeners/subscribers) when a relevant event or state change occurs. Subscribers depend on a notification contract rather than on concrete implementation details of the publisher. The relationship can be established and removed at runtime.
+
+**Scope:** this page describes the in-process behavioral design pattern. It does not itself guarantee durable event storage, message delivery across machines, asynchronous execution, ordering, deduplication, or exactly-once side effects. A queue, broker or event log can implement related mechanisms, but inherits its own distinct delivery contract.
+
+## Why it exists
+
+A pricing service may need to notify both the UI and an audit module about price changes. Directly calling both concrete components would require the price service to know every consumer. Polling forces consumers to repeatedly check for updates. Observer introduces an explicit subscription interface so consumers can be added without changing the core subject on every new requirement.
+
+The abstraction reduces concrete coupling, but it does **not** remove temporal coupling: a synchronous callback still executes in the caller's stack and may cause the publisher to fail or stall.
+
+## Mental model
+
+A subscriber signs up for release notifications. When the publisher announces a release, it contacts those currently registered. The analogy breaks when imagining a guaranteed inbox: an in-memory subscription usually disappears on process restart and events emitted before subscription are not replayed.
+
+## Mechanics and guarantees
+
+1. **Registration:** a consumer supplies an observer/callback. The subject retains the subscription according to an explicit lifecycle.
+2. **Notification:** an event occurs and the subject iterates the active subscribers; a push model supplies a value or state snapshot.
+3. **Unsubscription:** the consumer releases the subscription, avoiding stale callbacks and unwanted resource retention. In .NET, subscription commonly yields an **IDisposable**.
+4. **Delivery policy:** an implementation must define whether callbacks are synchronous, which order they run in, and what happens if one throws.
+5. **Reentrancy:** callbacks may subscribe, unsubscribe or publish another event. A snapshot of subscribers provides a defined iteration view; it does not prevent nested notifications or all races.
+6. **Thread/concurrency safety:** no in-process observer pattern automatically makes a subject thread-safe. Locks, actor-style ownership or immutable snapshots may be required if publishers are called concurrently.
+
+The sample below **chooses** synchronous notification in insertion order, a snapshot of currently subscribed callbacks at the start of each publish, no replay, and fail-fast callback errors. These are example-specific guarantees, not universal Observer guarantees. Unsubscription during an ongoing publication does not cancel a callback already present in that snapshot.
+
+## Worked example
+
+This runnable **JavaScript / Node.js** example uses a Set of callbacks and returns an unsubscribe function. A snapshot stabilizes the iteration when a listener changes subscriptions.
+
+~~~js
+function createPublisher() {
+  const listeners = new Set();
+
+  function subscribe(listener) {
+    if (typeof listener !== "function") throw new TypeError("listener must be a function");
+    listeners.add(listener);
+    return () => listeners.delete(listener);
+  }
+
+  function publish(event) {
+    // Synchronous, insertion-ordered snapshot; errors propagate to the caller.
+    for (const listener of [...listeners]) listener(event);
+  }
+
+  return { subscribe, publish };
+}
+
+const news = createPublisher();
+const seen = [];
+const unsubscribe = news.subscribe((event) => seen.push(event));
+news.publish("ready");
+unsubscribe();
+news.publish("ignored");
+if (seen.join(",") !== "ready") throw new Error("observer contract broken");
+~~~
+
+**Lifetime test:** subscription is not persisted, and publication is immediate. The example deliberately does not implement retry, event buffering or multi-process delivery. A production implementation must specify cancellation, observer exceptions and memory retention.
+
+## Failure modes
+
+- **Uncontrolled error propagation:** a throwing callback can interrupt subsequent callbacks under a fail-fast policy.
+- **Unreleased observers:** retaining closures can retain large objects and outlive their expected lifecycle.
+- **Reentrant publication:** a listener that publishes again can recursively trigger notifications, potentially exhausting the call stack.
+- **Unexpected ordering:** other Observer implementations may provide no stable delivery order.
+- **Slow listeners:** synchronous publication adds listener latency directly to the caller.
+- **False reliability assumptions:** a crash between two callbacks may leave partial observable effects without any replay mechanism.
+- **Concurrent mutation:** unsynchronized subscription changes can race with notifications in multithreaded implementations.
+
+## Trade-offs
+
+Observer is useful for one-to-many relationships in a single process. Use explicit calls for fixed dependencies and small flows where subscriptions add needless indirection. Use an event dispatcher if multiple subjects need a shared routing contract. Use a durable message broker/outbox when persistence, recovery, cross-service delivery or backpressure are required.
+
+A subscription is not the same as an HTTP webhook or a database change stream: all notify consumers but have different ownership, retry and durability models.
+
+## Related concepts
+
+**Callback** describes a function invoked later or by another component; Observer is a subscription mechanism that manages callbacks/observers. **Publish/subscribe** can refer to in-memory or distributed implementations; it is not automatically synonymous with the GoF Observer pattern. **Reactive streams** add composition and sometimes backpressure/error/completion protocols. **Idempotency** can matter when event handlers are retried, but ordinary in-process Observer does not imply repeated delivery. **Composition** is an alternative to inheritance for placing the subscription mechanism behind an explicit field.
+
+## Testing and verification
+
+- Subscribe two independent observers and confirm both receive a published event.
+- Unsubscribe one observer; confirm no callback on a subsequent publication.
+- Have one callback subscribe another during delivery; confirm the new one starts receiving the **next** event under snapshot semantics.
+- Have a callback throw; confirm the expected fail-fast policy and document the impact on later callbacks.
+- If listeners are allowed to publish recursively, test reentrancy behavior and document the expected maximum depth or guard.
+- Restart the process and verify that no previous in-memory subscription or event is silently assumed to survive.
+
+## References
+
+- [Microsoft Learn: Observer design pattern](https://learn.microsoft.com/en-us/dotnet/standard/events/observer-design-pattern) — .NET observer roles and lifecycle.
+- [Microsoft Learn: IObservable&lt;T&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.iobservable-1) — subscription contract, values and disposal.
+- [Refactoring.Guru: Observer](https://refactoring.guru/design-patterns/observer) — structural roles, trade-offs and variants.
+
+**Editorial status:** draft. No independent reviewer or completed review date is claimed.

@@ -6,7 +6,7 @@ contentType: category
 This category belongs to **Programming Foundations**. It provides a navigational overview of five selected foundational and advanced terms.
 ## Catalog candidates
 > **Editorial status:** Catalog entries below are planned concepts, not independently reviewed articles. Pilot pages are clearly marked as drafts.
-- **Observer Pattern** — Planned; no article available yet.
+- [**Observer Pattern**](/oop-design-patterns/observer-pattern/) — Editorial draft preview; independent review pending.
 - **Adapter Pattern** — Planned; no article available yet.
 - **Strategy Pattern** — Planned; no article available yet.
 - **Dependency Injection** — Planned; no article available yet.
