@@ -1,364 +1,400 @@
 /*
- * Atlas editorial reading system — M1.3 design refinement.
- * Static Starlight layout remains the foundation: no JS, no fonts, no theme plugin.
- * Semantic tokens follow Starlight's dark/light data-theme switch.
+ * Atlas reference-library visual system.
+ * Starlight owns navigation, search, markdown rendering and responsiveness.
+ * No external fonts, client-side effects or component framework.
  */
 :root {
   --sl-font: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  --sl-font-mono: ui-monospace, "Cascadia Code", "SFMono-Regular", Menlo, Consolas, monospace;
-  --sl-content-width: 53rem;
-  --sl-sidebar-width: 17.5rem;
-  --sl-color-accent-low: #163831;
-  --sl-color-accent: #92d0ba;
-  --sl-color-accent-high: #e1f9ed;
-  --atlas-surface: #101922;
-  --atlas-raised: #15212b;
-  --atlas-ink: #edf2f2;
-  --atlas-muted: #a7b7bc;
-  --atlas-line: #32444a;
-  --atlas-link: #a0dbc7;
-  --atlas-focus: #b7e5cc;
+  --sl-font-mono: ui-monospace, "Cascadia Code", Menlo, Consolas, monospace;
+  --sl-content-width: 54rem;
+  --sl-sidebar-width: 17rem;
+  --sl-color-accent-low: #1a3542;
+  --sl-color-accent: #a7c6ed;
+  --sl-color-accent-high: #f0f6ff;
+
+  --atlas-surface: #10181f;
+  --atlas-ink: #e7edf0;
+  --atlas-muted: #a2b0b7;
+  --atlas-line: #33434b;
+  --atlas-accent: #a7c6ed;
+  --atlas-soft: #17232d;
+  --atlas-panel: #0c1319;
+  --atlas-panel-ink: #f3f6f6;
+  --atlas-panel-muted: #a7b6c0;
+  --atlas-panel-line: #32424d;
+  --atlas-focus: #c0d8f6;
+  --atlas-button: #c2d9f5;
+  --atlas-button-text: #112232;
 }
 
 :root[data-theme='light'] {
-  --sl-color-accent-low: #e3f2ed;
-  --sl-color-accent: #22594f;
-  --sl-color-accent-high: #153e35;
-  --atlas-surface: #ffffff;
-  --atlas-raised: #f5f8f7;
-  --atlas-ink: #182d31;
-  --atlas-muted: #51666b;
-  --atlas-line: #dce6e3;
-  --atlas-link: #205a4e;
-  --atlas-focus: #215f54;
+  --sl-color-accent-low: #e5edf9;
+  --sl-color-accent: #294e87;
+  --sl-color-accent-high: #1b365f;
+
+  --atlas-surface: #fcfcfa;
+  --atlas-ink: #222b32;
+  --atlas-muted: #607078;
+  --atlas-line: #dce1e3;
+  --atlas-accent: #294e87;
+  --atlas-soft: #f2f5f5;
+  --atlas-panel: #162630;
+  --atlas-panel-ink: #f5f7f6;
+  --atlas-panel-muted: #bac9ce;
+  --atlas-panel-line: #435763;
+  --atlas-focus: #294e87;
+  --atlas-button: #21394e;
+  --atlas-button-text: #ffffff;
 }
 
-/* Reading first: slightly narrower line lengths, calmer headings and predictable spacing. */
+/* A distinct article heading, while category pages retain Starlight navigation. */
+.content-panel:not(:has(.atlas-home)) > .sl-container > h1#_top {
+  padding-block: .85rem 1.15rem;
+  margin-bottom: .15rem;
+  border-bottom: 1px solid var(--atlas-line);
+  font-size: clamp(2.05rem, 3.1vw, 2.9rem);
+  font-weight: 760;
+  line-height: 1.15;
+  letter-spacing: -.047em;
+  text-wrap: balance;
+}
+
+/* A clean information layer across docs and articles. */
 .sl-markdown-content {
-  font-size: 1rem;
-  line-height: 1.75;
+  font-size: 1.06rem;
+  line-height: 1.76;
 }
-
 .sl-markdown-content > p,
 .sl-markdown-content > ul,
 .sl-markdown-content > ol {
   max-width: 74ch;
 }
-
-.sl-markdown-content p { line-height: 1.76; }
-
-.sl-markdown-content h2:not(:first-child) {
-  padding-top: 1.25rem;
+.sl-markdown-content > p {
+  line-height: 1.78;
+  margin-block: 1.05rem;
+}
+.sl-markdown-content > h2 {
+  margin-top: 3.1rem;
+  padding-top: .8rem;
   border-top: 1px solid var(--atlas-line);
-}
-
-.sl-markdown-content h2,
-.sl-markdown-content h3 {
-  letter-spacing: -0.027em;
-  line-height: 1.28;
+  font-size: clamp(1.52rem, 2vw, 1.86rem);
+  line-height: 1.26;
+  letter-spacing: -.032em;
   text-wrap: balance;
 }
-
-.sl-markdown-content h2 { margin-block-start: 2.75rem; }
-.sl-markdown-content h3 { margin-block-start: 1.75rem; }
-
-.sl-markdown-content :not(pre) > code {
-  font-size: .88em;
-  border-radius: .3rem;
+.sl-markdown-content > h3 {
+  margin-top: 2rem;
+  font-size: 1.32rem;
+  line-height: 1.35;
+  letter-spacing: -.02em;
 }
-
-.sl-markdown-content table {
-  font-size: .92rem;
-}
-
-.sl-markdown-content th {
-  text-align: left;
-}
-
-.sl-markdown-content blockquote {
-  border-inline-start-color: var(--sl-color-accent);
-}
-
+.sl-markdown-content li { line-height: 1.7; }
+.sl-markdown-content :not(pre) > code { font-size: .9em; border-radius: .25rem; }
+.sl-markdown-content .expressive-code { margin-block: 1.4rem 1.75rem; }
+.sl-markdown-content blockquote { border-inline-start-color: var(--sl-color-accent); }
 .sl-markdown-content .starlight-aside {
-  border-radius: .55rem;
+  border-radius: .45rem;
+  padding: 1rem 1.15rem;
+  margin-block: 1.5rem;
 }
+.sl-markdown-content table { font-size: .94rem; }
+.sl-markdown-content th { font-weight: 650; text-align: left; }
+.sidebar-content { font-size: .88rem; line-height: 1.48; }
+.right-sidebar { font-size: .85rem; }
 
-/* The stock Starlight hero stays semantic; typography and whitespace are restrained. */
-.hero {
-  padding-block: clamp(2.25rem, 5.5vw, 4.75rem);
-  border-bottom: 1px solid var(--atlas-line);
-}
-
-.hero h1 {
-  max-width: 18ch;
-  font-size: clamp(2.4rem, 5vw, 4.2rem);
-  letter-spacing: -.058em;
-  line-height: 1.09;
-  text-wrap: balance;
-}
-
-.hero .tagline {
-  max-width: 43rem;
-  line-height: 1.65;
-  font-size: clamp(1rem, 1.45vw, 1.15rem);
-  text-wrap: pretty;
-}
-
-.hero .actions a {
-  border-radius: .4rem;
-  font-weight: 600;
-}
-
-/* Editorial home: no gallery, badges-as-decoration, gradients, or 13 identical cards. */
+/* Homepage has its own hierarchy; avoid inherited article margins. */
 .atlas-home {
-  --atlas-home-spacing: clamp(2rem, 5vw, 4.5rem);
-  max-width: 70rem;
+  max-width: 76rem;
   margin-inline: auto;
   color: var(--atlas-ink);
+  font-size: 1rem;
 }
-
-.atlas-home-meta {
+.atlas-home * { box-sizing: border-box; }
+.atlas-home :is(h1,h2,h3,p) { margin-block: 0; padding: 0; border: 0; }
+.atlas-home :is(h1,h2,h3) { color: var(--atlas-ink); }
+.atlas-home a { text-decoration: none; }
+.atlas-eyebrow {
+  display: flex;
+  align-items: center;
+  gap: .55rem;
+  color: var(--atlas-accent);
+  font: 700 .7rem/1.5 var(--sl-font-mono);
+  letter-spacing: .07em;
+}
+.atlas-eyebrow-line {
+  display: inline-block;
+  width: 1.25rem;
+  height: 2px;
+  background: currentColor;
+}
+.atlas-masthead {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(18rem, .8fr);
+  gap: clamp(1.5rem, 5vw, 5rem);
+  align-items: stretch;
+  padding-block: clamp(2.3rem, 4.5vw, 4.1rem) 2.1rem;
+}
+.atlas-masthead-main { min-width: 0; align-self: center; }
+.atlas-masthead h1 {
+  max-width: 16ch;
+  margin-block: 1.05rem 1.1rem;
+  font-size: clamp(2.5rem, 4.3vw, 4.4rem);
+  font-weight: 750;
+  letter-spacing: -.065em;
+  line-height: 1.075;
+  text-wrap: balance;
+}
+.atlas-masthead h1 em {
+  color: var(--atlas-accent);
+  font-style: normal;
+}
+.atlas-lead {
+  max-width: 56ch;
+  color: var(--atlas-muted);
+  font-size: clamp(1.02rem, 1.3vw, 1.13rem);
+  line-height: 1.68;
+}
+.atlas-actions {
   display: flex;
   flex-wrap: wrap;
-  justify-content: space-between;
   align-items: center;
-  gap: .6rem 1.5rem;
-  padding-block: 1rem;
-  border-bottom: 1px solid var(--atlas-line);
+  gap: .8rem 1.5rem;
+  margin-block: 1.65rem 1.4rem;
+}
+.atlas-primary-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  min-width: 12.75rem;
+  gap: 1.5rem;
+  padding: .82rem 1rem;
+  background: var(--atlas-button);
+  color: var(--atlas-button-text) !important;
+  border: 1px solid var(--atlas-button);
+  border-radius: .4rem;
+  font-weight: 650;
+  font-size: .92rem;
+  line-height: 1.4;
+}
+.atlas-primary-link:hover { filter: brightness(.92); }
+.atlas-secondary-link {
+  display: inline-flex;
+  gap: .5rem;
+  align-items: center;
+  padding: .8rem 0;
+  color: var(--atlas-ink) !important;
+  font-size: .9rem;
+  font-weight: 590;
+}
+.atlas-secondary-link:hover { color: var(--atlas-accent) !important; }
+.atlas-masthead-foot {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .75rem;
+  align-items: center;
   color: var(--atlas-muted);
-  font-family: var(--sl-font-mono);
-  font-size: .69rem;
-  font-weight: 600;
+  font: 500 .74rem/1.65 var(--sl-font-mono);
+}
+
+/* The three starter references give the page useful first-screen purpose. */
+.atlas-quickstart {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-width: 0;
+  align-self: stretch;
+  padding: 1.2rem 1.45rem;
+  background: var(--atlas-panel);
+  border: 1px solid var(--atlas-panel-line);
+  border-radius: .7rem;
+  color: var(--atlas-panel-ink);
+}
+.atlas-quickstart-top {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: .35rem .1rem 1rem;
+  color: var(--atlas-panel-muted);
+  font: 650 .7rem/1.3 var(--sl-font-mono);
   letter-spacing: .06em;
 }
+.atlas-quickstart a {
+  display: grid;
+  grid-template-columns: 2.2rem minmax(0, 1fr) 1rem;
+  align-items: start;
+  gap: .75rem;
+  padding: 1.16rem .1rem;
+  color: var(--atlas-panel-ink) !important;
+  border-top: 1px solid var(--atlas-panel-line);
+  border-radius: 0;
+}
+.atlas-quickstart a:hover .atlas-quick-copy strong {
+  color: #d4e5f8;
+  text-decoration: underline;
+  text-underline-offset: .3em;
+}
+.atlas-quick-number {
+  padding-top: .12rem;
+  color: var(--atlas-panel-muted);
+  font: 650 .78rem var(--sl-font-mono);
+}
+.atlas-quick-copy { display: grid; gap: .34rem; min-width: 0; }
+.atlas-quick-copy strong { font-size: 1rem; font-weight: 660; letter-spacing: -.014em; }
+.atlas-quick-copy small { color: var(--atlas-panel-muted); font-size: .83rem; line-height: 1.48; }
+.atlas-quick-arrow { font-size: 1rem; color: var(--atlas-panel-muted); }
 
+/* Unreviewed status is visible without interrupting the reading journey. */
 .atlas-preview-notice {
   display: flex;
-  align-items: flex-start;
-  gap: .85rem;
-  padding: 1.1rem 1.15rem;
-  margin-block-start: 1.75rem;
+  align-items: center;
+  gap: .75rem;
+  padding: .85rem 1rem;
+  background: var(--atlas-soft);
   border: 1px solid var(--atlas-line);
-  border-radius: .5rem;
-  background: var(--atlas-raised);
+  border-radius: .35rem;
+  color: var(--atlas-muted);
+  font-size: .84rem;
+  line-height: 1.55;
 }
-
-.atlas-status-mark {
-  display: block;
-  flex: 0 0 .53rem;
-  width: .53rem;
-  height: .53rem;
-  margin-top: .51rem;
-  border: 1.5px solid var(--atlas-link);
+.atlas-preview-marker {
+  flex: 0 0 .5rem;
+  width: .5rem;
+  height: .5rem;
   border-radius: 50%;
+  background: #b47e3b;
 }
-
-.atlas-preview-notice strong {
-  font-size: .9rem;
-  font-weight: 660;
-  letter-spacing: -.01em;
+.atlas-preview-notice > div { flex: 1; }
+.atlas-preview-notice strong { color: var(--atlas-ink); font-weight: 675; }
+.atlas-preview-notice a {
+  flex: 0 0 auto;
+  color: var(--atlas-accent);
+  font-weight: 650;
+  font-size: .81rem;
+  white-space: nowrap;
 }
+.atlas-preview-notice a:hover { text-decoration: underline; text-underline-offset: .22em; }
 
-.atlas-preview-notice p {
-  max-width: 78ch;
-  margin-block: .3rem 0;
-  color: var(--atlas-muted);
-  font-size: .87rem;
-  line-height: 1.65;
+/* Compact domain directory; hierarchy comes from editorial groupings, not cards. */
+.atlas-directory { padding-block: clamp(2.5rem, 5.2vw, 4.5rem) 3.25rem; }
+.atlas-section-heading {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem 3rem;
+  justify-content: space-between;
+  align-items: end;
+  padding-bottom: 1.55rem;
+  border-bottom: 1px solid var(--atlas-line);
 }
-
-.atlas-intro {
-  max-width: 51rem;
-  padding-block: var(--atlas-home-spacing) clamp(1.5rem, 4vw, 2.5rem);
-}
-
-.atlas-intro .atlas-eyebrow,
-.atlas-directory-kicker {
-  color: var(--atlas-muted);
-  font-family: var(--sl-font-mono);
-  font-size: .72rem;
-  font-weight: 700;
-  letter-spacing: .075em;
-}
-
-.atlas-intro h2 {
-  margin-block: .8rem 1rem;
-  padding: 0;
-  border: 0;
-  font-size: clamp(1.85rem, 3vw, 2.65rem);
+.atlas-section-heading .atlas-eyebrow { margin-bottom: .6rem; }
+.atlas-section-heading h2 {
+  font-size: clamp(1.75rem, 2.55vw, 2.45rem);
+  font-weight: 730;
   line-height: 1.16;
   letter-spacing: -.048em;
 }
-
-.atlas-intro > p:last-child {
-  max-width: 63ch;
-  color: var(--atlas-muted);
-  font-size: 1.07rem;
-  line-height: 1.76;
-}
-
-.atlas-principles {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  border-top: 1px solid var(--atlas-line);
-  border-bottom: 1px solid var(--atlas-line);
-}
-
-.atlas-principle {
-  padding: 1.5rem 1.4rem 1.5rem 0;
-  min-width: 0;
-}
-
-.atlas-principle + .atlas-principle {
-  padding-inline-start: 1.4rem;
-  border-inline-start: 1px solid var(--atlas-line);
-}
-
-.atlas-principle-number {
-  display: block;
-  margin-bottom: .9rem;
-  color: var(--atlas-muted);
-  font: 600 .7rem var(--sl-font-mono);
-  letter-spacing: .04em;
-}
-
-.atlas-principle strong {
-  display: block;
-  font-size: 1.05rem;
-  letter-spacing: -.02em;
-}
-
-.atlas-principle p {
-  margin-block: .35rem 0;
-  color: var(--atlas-muted);
-  font-size: .89rem;
-  line-height: 1.62;
-}
-
-.atlas-directory {
-  padding-block: var(--atlas-home-spacing);
-}
-
-.atlas-directory > h2 {
-  margin: 0 0 .65rem;
-  padding: 0;
-  border: 0;
-  font-size: clamp(1.65rem, 2.5vw, 2.2rem);
-}
-
-.atlas-directory > p {
-  max-width: 66ch;
-  margin-block: 0 1.85rem;
-  color: var(--atlas-muted);
-  font-size: .96rem;
-}
-
+.atlas-section-heading > p { max-width: 31rem; color: var(--atlas-muted); font-size: .91rem; line-height: 1.65; }
+.atlas-section-heading a { color: var(--atlas-accent); text-decoration: underline; text-underline-offset: .2em; }
 .atlas-directory-grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 1.5rem 2rem;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1.4rem 2.1rem;
+  margin-top: 1.1rem;
 }
-
-.atlas-directory-group {
-  min-width: 0;
-  padding: 1.25rem 0 0;
-  border-top: 1px solid var(--atlas-line);
-}
-
-.atlas-directory-group .atlas-directory-kicker {
-  margin: 0 0 .4rem;
-}
-
-.atlas-directory-group h3 {
-  margin: 0 0 .7rem;
-  font-size: 1.13rem;
-  font-weight: 680;
-}
-
-.atlas-directory-group ul {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-}
-
-.atlas-directory-group li {
-  margin: 0;
-  border-bottom: 1px solid var(--atlas-line);
-}
-
-.atlas-directory-group li a {
-  display: block;
-  padding: .78rem 1.3rem .78rem .05rem;
-  color: var(--atlas-ink);
-  font-weight: 540;
-  font-size: .92rem;
-  line-height: 1.5;
-  text-decoration: none;
-  position: relative;
-}
-
-.atlas-directory-group li a::after {
-  content: "↗";
-  position: absolute;
-  right: .05rem;
-  color: var(--atlas-muted);
-  font-weight: 400;
-}
-
-.atlas-directory-group li a:hover {
-  color: var(--atlas-link);
-  text-decoration: underline;
-  text-decoration-thickness: 1px;
-  text-underline-offset: .25em;
-}
-
-.atlas-home-footer {
+.atlas-directory-group { min-width: 0; }
+.atlas-directory-group > header {
   display: flex;
   justify-content: space-between;
+  gap: .75rem;
+  padding-block: .7rem 1.45rem;
+  color: var(--atlas-muted);
+  font: 600 .7rem/1.4 var(--sl-font-mono);
+  border-bottom: 1px solid var(--atlas-line);
+  letter-spacing: .04em;
+}
+.atlas-directory-group h3 {
+  margin-top: 1.3rem;
+  font-size: 1.23rem;
+  font-weight: 690;
+  letter-spacing: -.027em;
+  line-height: 1.25;
+}
+.atlas-directory-group > p {
+  min-height: 3.35rem;
+  max-width: 35ch;
+  margin-block: .5rem 1rem;
+  font-size: .88rem;
+  line-height: 1.62;
+  color: var(--atlas-muted);
+}
+.atlas-directory-list { list-style: none; margin: 0; padding: 0; }
+.atlas-directory-list li { margin: 0; border-bottom: 1px solid var(--atlas-line); }
+.atlas-directory-list li a {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .9rem;
+  padding-block: .87rem;
+  color: var(--atlas-ink);
+  font-size: .94rem;
+  font-weight: 560;
+  line-height: 1.4;
+}
+.atlas-directory-list li a span { flex-shrink: 0; color: var(--atlas-muted); font-weight: 400; }
+.atlas-directory-list li a:hover {
+  color: var(--atlas-accent);
+  text-decoration: underline;
+  text-underline-offset: .25em;
+}
+.atlas-footer {
+  display: flex;
   flex-wrap: wrap;
-  gap: .75rem 1.5rem;
-  padding-block: 1rem 2rem;
+  justify-content: space-between;
+  gap: .75rem 2rem;
+  padding-block: 1.25rem 2.3rem;
   border-top: 1px solid var(--atlas-line);
   color: var(--atlas-muted);
-  font: 500 .75rem var(--sl-font-mono);
+  font: 550 .73rem/1.6 var(--sl-font-mono);
+  letter-spacing: .015em;
 }
 
-/* Respect keyboard navigation across the documentation shell and custom directory. */
+/* Starlight's splash shell adds a duplicate title and previous/next footer.
+ * Hide that chrome only on the homepage, which supplies its own accessible H1. */
+body:has(.atlas-home) .content-panel:has(> .sl-container > h1#_top) { display: none; }
+body:has(.atlas-home) .content-panel:has(.atlas-home) > .sl-container > footer { display: none; }
+
+/* Keyboard focus visibility always wins over the brand styling. */
 :focus-visible {
-  outline: 2px solid var(--atlas-focus);
+  outline: 3px solid var(--atlas-focus);
   outline-offset: 3px;
   border-radius: .2rem;
 }
 
-/* Sidebar preserves native behavior; only reading density is adjusted. */
-.sidebar-content {
-  font-size: .88rem;
-  line-height: 1.55;
+@media (max-width: 64rem) {
+  .atlas-masthead { grid-template-columns: minmax(0, 1fr) minmax(16rem, .9fr); gap: 1.5rem; }
+  .atlas-masthead h1 { font-size: clamp(2.35rem, 4.6vw, 3.65rem); }
+  .atlas-directory-grid { gap: 1.25rem; }
 }
-
 @media (max-width: 48rem) {
-  .hero { padding-block: 2.15rem; }
-  .hero h1 { font-size: clamp(2.1rem, 9vw, 3.1rem); }
-  .atlas-home-meta { font-size: .65rem; }
-  .atlas-intro { padding-block: 2.65rem 1.5rem; }
-  .atlas-intro h2 { font-size: clamp(1.85rem, 7vw, 2.4rem); }
-  .atlas-intro > p:last-child { font-size: .99rem; }
-  .atlas-principles { grid-template-columns: 1fr; }
-  .atlas-principle,
-  .atlas-principle + .atlas-principle {
-    padding: 1rem 0;
-    border-inline-start: 0;
-  }
-  .atlas-principle + .atlas-principle { border-top: 1px solid var(--atlas-line); }
-  .atlas-principle-number { margin-bottom: .4rem; }
-  .atlas-directory-grid { grid-template-columns: 1fr; gap: 2rem; }
-  .atlas-preview-notice { padding: .95rem; }
+  .atlas-masthead { grid-template-columns: 1fr; gap: 2rem; padding-block: 2.25rem 1.35rem; }
+  .atlas-masthead h1 { max-width: 18ch; font-size: clamp(2.3rem, 8.1vw, 3.2rem); }
+  .atlas-lead { font-size: 1rem; }
+  .atlas-masthead-foot { gap: .5rem; }
+  .atlas-quickstart { padding: 1rem 1.2rem; }
+  .atlas-quickstart a { padding-block: .9rem; }
+  .atlas-preview-notice { display: block; position: relative; padding-left: 1.65rem; }
+  .atlas-preview-marker { position: absolute; left: .72rem; top: 1.12rem; }
+  .atlas-preview-notice a { display: inline-block; margin-top: .4rem; margin-inline-start: 0; }
+  .atlas-directory { padding-block: 2.6rem 2rem; }
+  .atlas-directory-grid { grid-template-columns: 1fr; gap: 1.2rem; }
+  .atlas-directory-group { padding-bottom: 1.4rem; }
+  .atlas-directory-group > p { min-height: 0; }
+  .sl-markdown-content { font-size: 1rem; }
+  .sl-markdown-content > h2 { margin-top: 2.2rem; }
 }
-
 @media (prefers-reduced-motion: reduce) {
-  .atlas-home *, .hero * {
-    scroll-behavior: auto;
-    transition-duration: 0.01ms;
-    animation-duration: 0.01ms;
+  .atlas-home *, .atlas-home *::before, .atlas-home *::after {
+    scroll-behavior: auto !important;
+    animation-duration: .01ms !important;
+    transition-duration: .01ms !important;
   }
 }

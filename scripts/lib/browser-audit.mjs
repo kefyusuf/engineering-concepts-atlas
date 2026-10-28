@@ -244,6 +244,25 @@ export async function runBrowserAudit(distRoot, { routes = DEFAULT_ROUTES, baseP
       mkdirSync(screenshotsDir, { recursive: true });
       await cdp.send('Emulation.setDeviceMetricsOverride', { width: 1440, height: 900, deviceScaleFactor: 1, mobile: false });
       await navigate(cdp, baseUrl, '/', basePath);
+      const landing = await evaluate(cdp, `(() => {
+        const headings = [...document.querySelectorAll('h1')].filter(el => {
+          const style = getComputedStyle(el);
+          return style.display !== 'none' && el.getClientRects().length > 0;
+        });
+        const quickstart = document.querySelector('.atlas-quickstart');
+        const directory = document.querySelector('.atlas-directory');
+        return {
+          visibleH1: headings.length,
+          top: headings[0]?.getBoundingClientRect().top ?? -1,
+          quickstart: !!quickstart,
+          directoryTop: directory?.getBoundingClientRect().top ?? -1,
+        };
+      })()`);
+      if (landing.visibleH1 !== 1 || landing.top < 0 || landing.top > 210 ||
+          !landing.quickstart || landing.directoryTop < 0 || landing.directoryTop > 950) {
+        throw new Error(`Homepage layout contract failed: ${JSON.stringify(landing)}`);
+      }
+      console.log(`Homepage visual structure PASS: ${JSON.stringify(landing)}`);
       const home = await cdp.send('Page.captureScreenshot', { format: 'png', captureBeyondViewport: true });
       writeFileSync(join(screenshotsDir, 'home-desktop.png'), Buffer.from(home.data, 'base64'));
       await navigate(cdp, baseUrl, '/distributed-systems/idempotency/', basePath);

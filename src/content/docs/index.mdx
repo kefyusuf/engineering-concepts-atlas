@@ -1,115 +1,96 @@
 ---
 title: Engineering Concepts Atlas
-description: A quiet, evidence-led field guide to software engineering concepts.
+description: Engineering concepts explained through precise definitions, failure modes and verifiable evidence.
 template: splash
-hero:
-  title: Understand the system, not just the term.
-  tagline: A technical field guide to definitions, guarantees, failure modes and the evidence behind them.
-  actions:
-    - text: Browse the concept index
-      link: ./concept-index/
-      icon: right-arrow
-    - text: About the atlas
-      link: ./about/
-      variant: minimal
 ---
 
 <div class="atlas-home">
-
-  <div class="atlas-home-meta">
-    <span>ENGINEERING CONCEPTS ATLAS / FIELD GUIDE</span>
-    <span>13 DRAFT ARTICLES · 20 CATEGORIES</span>
-  </div>
-
-  <aside class="atlas-preview-notice" role="note" aria-label="Editorial preview status">
-    <span class="atlas-status-mark" aria-hidden="true"></span>
-    <div>
-      <strong>Public editorial preview — not approved for publication</strong>
-      <p>These thirteen articles are working drafts, not independently reviewed technical references. Treat examples as learning material and verify production decisions against the cited sources.</p>
+  <section class="atlas-masthead" aria-label="Atlas introduction">
+    <div class="atlas-masthead-main">
+      <p class="atlas-eyebrow"><span class="atlas-eyebrow-line" aria-hidden="true"></span> ENGINEERING / REFERENCE LIBRARY</p>
+      <h1>Understand the <em>guarantee</em> behind the concept.</h1>
+      <p class="atlas-lead">A practical field guide to how software behaves, when assumptions break, and what the evidence actually supports.</p>
+      <div class="atlas-actions">
+        <a class="atlas-primary-link" href="./concept-index/">Explore the index <span aria-hidden="true">↗</span></a>
+        <a class="atlas-secondary-link" href="./about/">About the project <span aria-hidden="true">→</span></a>
+      </div>
+      <p class="atlas-masthead-foot">100 planned concepts <span aria-hidden="true">/</span> 20 categories <span aria-hidden="true">/</span> 13 draft articles</p>
     </div>
+    <aside class="atlas-quickstart" aria-label="Start with a concept">
+      <div class="atlas-quickstart-top">
+        <span>START READING</span><span>01 — 03</span>
+      </div>
+      <a href="./distributed-systems/idempotency/">
+        <span class="atlas-quick-number">01</span>
+        <span class="atlas-quick-copy"><strong>Idempotency</strong><small>Can the operation be safely retried?</small></span>
+        <span class="atlas-quick-arrow" aria-hidden="true">↗</span>
+      </a>
+      <a href="./databases-transactions/transaction-isolation-levels/">
+        <span class="atlas-quick-number">02</span>
+        <span class="atlas-quick-copy"><strong>Transaction Isolation</strong><small>Which concurrent outcomes are permitted?</small></span>
+        <span class="atlas-quick-arrow" aria-hidden="true">↗</span>
+      </a>
+      <a href="./compilers-runtimes/abstract-syntax-tree/">
+        <span class="atlas-quick-number">03</span>
+        <span class="atlas-quick-copy"><strong>Abstract Syntax Tree</strong><small>Where does parsing end and analysis begin?</small></span>
+        <span class="atlas-quick-arrow" aria-hidden="true">↗</span>
+      </a>
+    </aside>
+  </section>
+
+  <aside class="atlas-preview-notice" role="note" aria-label="Editorial publication status">
+    <span class="atlas-preview-marker" aria-hidden="true"></span>
+    <div><strong>Editorial preview — not approved for publication.</strong> <span>All thirteen articles are working drafts, not independently reviewed technical references.</span></div>
+    <a href="./about/">Review policy <span aria-hidden="true">↗</span></a>
   </aside>
 
-  <section class="atlas-intro" aria-label="How this reference works">
-    <p class="atlas-eyebrow">HOW TO READ THIS ATLAS</p>
-    <h2>Understand the guarantee.<br />See where it breaks.</h2>
-    <p>Each article starts with the exact meaning, explains the mechanism, then examines counterexamples, engineering trade-offs and practical verification. Less terminology to memorize. More reasoning you can reuse.</p>
-  </section>
-
-  <div class="atlas-principles" aria-label="Editorial principles">
-    <div class="atlas-principle">
-      <span class="atlas-principle-number">01 / SEMANTICS</span>
-      <strong>Be precise.</strong>
-      <p>Separate definitions and implementation-specific behavior.</p>
+  <section class="atlas-directory" aria-labelledby="atlas-directory-title">
+    <div class="atlas-section-heading">
+      <div>
+        <p class="atlas-eyebrow">THE READING LIBRARY</p>
+        <h2 id="atlas-directory-title">Browse by field</h2>
+      </div>
+      <p>Thirteen articles are available now. The full <a href="./concept-index/">concept index</a> tracks all 100 planned concepts across 20 categories.</p>
     </div>
-    <div class="atlas-principle">
-      <span class="atlas-principle-number">02 / FAILURE MODES</span>
-      <strong>Find the boundary.</strong>
-      <p>Study the assumptions, exceptions and counterexamples.</p>
-    </div>
-    <div class="atlas-principle">
-      <span class="atlas-principle-number">03 / EVIDENCE</span>
-      <strong>Test the claim.</strong>
-      <p>Use runnable examples, primary sources and review status.</p>
-    </div>
-  </div>
-
-  <section class="atlas-directory" aria-label="Current concept articles">
-
-<h2>Explore the current articles</h2>
-
-Thirteen in-depth draft articles are available. Browse the grouped reading list or use the [complete concept index](/concept-index/) for all 20 categories and 100 planned concepts.
-
     <div class="atlas-directory-grid">
-
-      <div class="atlas-directory-group">
-        <p class="atlas-directory-kicker">01 / BUILDING SOFTWARE</p>
-
-<h3>Language & design</h3>
-
-      <ul class="atlas-directory-list">
-<li><a href="./programming-language-concepts/idiomatic-programming/">Idiomatic Programming</a></li>
-<li><a href="./type-systems/type-inference/">Type Inference</a></li>
-<li><a href="./functional-programming/pure-function/">Pure Function</a></li>
-<li><a href="./oop-design-patterns/observer-pattern/">Observer Pattern</a></li>
-<li><a href="./compilers-runtimes/abstract-syntax-tree/">Abstract Syntax Tree (AST)</a></li>
-      </ul>
-
-      </div>
-
-      <div class="atlas-directory-group">
-        <p class="atlas-directory-kicker">02 / SYSTEM BEHAVIOR</p>
-
-<h3>Runtime, data & protocols</h3>
-
-      <ul class="atlas-directory-list">
-<li><a href="./concurrency-parallelism/atomic-operation/">Atomic Operation</a></li>
-<li><a href="./operating-systems-memory/virtual-memory/">Virtual Memory</a></li>
-<li><a href="./io-networking/input-output/">Input/Output (I/O)</a></li>
-<li><a href="./databases-transactions/transaction-isolation-levels/">Transaction Isolation Levels</a></li>
-<li><a href="./distributed-systems/idempotency/">Idempotency</a></li>
-<li><a href="./http-api-integration/http-method-semantics/">HTTP Method Semantics</a></li>
-      </ul>
-
-      </div>
-
-      <div class="atlas-directory-group">
-        <p class="atlas-directory-kicker">03 / MEASURING CORRECTNESS</p>
-
-<h3>Data structures & verification</h3>
-
-      <ul class="atlas-directory-list">
-<li><a href="./data-structures-algorithms/bloom-filter/">Bloom Filter</a></li>
-<li><a href="./testing-verification/mutation-testing/">Mutation Testing</a></li>
-      </ul>
-
-      </div>
-
+      <section class="atlas-directory-group" aria-labelledby="atlas-language">
+        <header><span>01</span><span>05 ARTICLES</span></header>
+        <h3 id="atlas-language">Language &amp; design</h3>
+        <p>How programs are expressed, composed and understood.</p>
+        <ul class="atlas-directory-list">
+          <li><a href="./programming-language-concepts/idiomatic-programming/">Idiomatic Programming <span aria-hidden="true">↗</span></a></li>
+          <li><a href="./type-systems/type-inference/">Type Inference <span aria-hidden="true">↗</span></a></li>
+          <li><a href="./functional-programming/pure-function/">Pure Function <span aria-hidden="true">↗</span></a></li>
+          <li><a href="./oop-design-patterns/observer-pattern/">Observer Pattern <span aria-hidden="true">↗</span></a></li>
+          <li><a href="./compilers-runtimes/abstract-syntax-tree/">Abstract Syntax Tree (AST) <span aria-hidden="true">↗</span></a></li>
+        </ul>
+      </section>
+      <section class="atlas-directory-group" aria-labelledby="atlas-systems">
+        <header><span>02</span><span>06 ARTICLES</span></header>
+        <h3 id="atlas-systems">Systems &amp; protocols</h3>
+        <p>What happens across processes, storage and networks.</p>
+        <ul class="atlas-directory-list">
+          <li><a href="./concurrency-parallelism/atomic-operation/">Atomic Operation <span aria-hidden="true">↗</span></a></li>
+          <li><a href="./operating-systems-memory/virtual-memory/">Virtual Memory <span aria-hidden="true">↗</span></a></li>
+          <li><a href="./io-networking/input-output/">Input/Output (I/O) <span aria-hidden="true">↗</span></a></li>
+          <li><a href="./databases-transactions/transaction-isolation-levels/">Transaction Isolation Levels <span aria-hidden="true">↗</span></a></li>
+          <li><a href="./distributed-systems/idempotency/">Idempotency <span aria-hidden="true">↗</span></a></li>
+          <li><a href="./http-api-integration/http-method-semantics/">HTTP Method Semantics <span aria-hidden="true">↗</span></a></li>
+        </ul>
+      </section>
+      <section class="atlas-directory-group" aria-labelledby="atlas-verification">
+        <header><span>03</span><span>02 ARTICLES</span></header>
+        <h3 id="atlas-verification">Structures &amp; verification</h3>
+        <p>Data structures, correctness and testing limits.</p>
+        <ul class="atlas-directory-list">
+          <li><a href="./data-structures-algorithms/bloom-filter/">Bloom Filter <span aria-hidden="true">↗</span></a></li>
+          <li><a href="./testing-verification/mutation-testing/">Mutation Testing <span aria-hidden="true">↗</span></a></li>
+        </ul>
+      </section>
     </div>
   </section>
-
-  <div class="atlas-home-footer">
-    <span>13 articles in preview / 87 subjects planned</span>
-    <span>No tracking scripts, accounts or interactive services.</span>
-  </div>
-
+  <footer class="atlas-footer">
+    <span>ENGINEERING CONCEPTS ATLAS</span>
+    <span>Definition → Mechanism → Failure → Verification → Sources</span>
+  </footer>
 </div>
