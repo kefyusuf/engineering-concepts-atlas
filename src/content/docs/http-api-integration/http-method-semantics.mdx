@@ -1,0 +1,199 @@
+---
+{
+  "title": "HTTP Method Semantics",
+  "description": "Safe, idempotent and cacheable HTTP methods, retry effects and endpoint contracts under RFC 9110.",
+  "contentType": "concept",
+  "conceptId": "api.http-method-semantics",
+  "category": "http-api-integration",
+  "kind": "concept",
+  "aliases": [
+    "HTTP Verbs",
+    "HTTP Request Method Semantics"
+  ],
+  "related": [
+    {
+      "conceptId": "distributed.idempotency",
+      "relation": "related_to"
+    },
+    {
+      "conceptId": "api.rest",
+      "relation": "related_to"
+    },
+    {
+      "conceptId": "api.webhook",
+      "relation": "related_to"
+    }
+  ],
+  "editorialStatus": "draft",
+  "sources": [
+    {
+      "title": "RFC 9110 — HTTP Semantics §9.2",
+      "url": "https://www.rfc-editor.org/rfc/rfc9110#section-9.2",
+      "role": "primary",
+      "scope": "Safe, idempotent and caching properties of standard HTTP request methods"
+    },
+    {
+      "title": "RFC 9110 — HTTP Semantics §9.3",
+      "url": "https://www.rfc-editor.org/rfc/rfc9110#section-9.3",
+      "role": "primary",
+      "scope": "Normative GET, HEAD, POST, PUT, DELETE and other HTTP method definitions"
+    },
+    {
+      "title": "RFC 9111 — HTTP Caching",
+      "url": "https://www.rfc-editor.org/rfc/rfc9111",
+      "role": "primary",
+      "scope": "Response caching constraints, storage and reuse separate from method semantics"
+    }
+  ]
+}
+---
+
+:::caution[Editorial preview — not approved for publication]
+This M1.3 draft is scoped to RFC 9110 semantics and an intentionally narrow Node.js demonstration. A passing example is not a production API compliance certification.
+:::
+
+## Precise definition
+
+An HTTP **request method** identifies the action a client intends the server to perform on a target resource. **Safe** means the client did not request an intended state-changing effect; **idempotent** means multiple identical requests have the same intended effect as one request; **cacheable** means responses can be stored and reused under protocol-defined conditions.
+
+These are different properties. Idempotency does not mean every status code is identical, caching does not mean every GET response is cached, and the method label does not force a faulty server implementation to behave correctly.
+
+## Why it exists
+
+Crawlers, caches, prefetchers and retrying clients cannot know every business API's internal rules. Safe methods let automated navigation read resources without intentionally triggering a charge. Idempotent methods allow clients to reason about retries after uncertain network failures. HTTP method contracts also support predictable intermediaries.
+
+## Mental model
+
+**GET** requests a representation; **PUT** requests replacement or creation at a known target URI; **DELETE** requests removal of its association; **POST** asks the target resource to process the supplied representation according to its own rules. These verbs label an expected contract, not an authentication, authorization or transaction guarantee.
+
+## Mechanics and guarantees
+
+| Method | Safe by RFC 9110? | Idempotent by RFC 9110? | Caching note |
+| --- | --- | --- | --- |
+| GET | Yes | Yes | Cacheable subject to cache controls |
+| HEAD | Yes | Yes | Metadata only; response content prohibited |
+| OPTIONS | Yes | Yes | No general response reuse semantics |
+| TRACE | Yes | Yes | No general response reuse semantics |
+| PUT | No | Yes | State replacement; response not generally cacheable |
+| DELETE | No | Yes | Same final intended effect when repeated |
+| POST | No | No by default | Only conditionally cacheable |
+
+The table refers to the methods defined by RFC 9110; extensions such as PATCH require their own specifications and cannot inherit all of the above simply by being HTTP methods.
+
+### Safety is about intended effect
+
+Incidental access logs or metrics can change under GET without violating its intended read-only semantics. A GET endpoint that deliberately deletes an account or charges a card violates safe-method expectations and can be triggered by crawlers.
+
+### Idempotency is effect-scoped
+
+An identical repeated PUT should result in the same requested resource state. Repeating DELETE should leave the resource removed, but the first response may be **204** and the second **404**. POST may be made retry-safe by a separate application protocol, but is not automatically idempotent. See [Idempotency](/distributed-systems/idempotency/).
+
+### Cacheability is separate
+
+GET and HEAD have caching semantics, and RFC 9110 also defines restricted POST caching. RFC 9111 imposes reuse conditions. A response with **Cache-Control: no-store** must not be stored in a compliant HTTP cache, regardless of a cacheable method.
+
+### HEAD, method errors, and preconditions
+
+HEAD follows GET retrieval semantics but **MUST NOT** include response content. Recognized but disallowed methods typically lead to **405 Method Not Allowed** with an **Allow** header; unknown or unimplemented methods typically lead to **501 Not Implemented**. Conditional requests such as **If-Match** can protect against lost updates, which ordinary idempotent PUT by itself does not prevent.
+
+## Worked example
+
+This runnable **Node.js v22 ESM** server demonstrates method effects at a single in-memory endpoint. No database, auth, shared cache or cross-instance retry protection is simulated.
+
+~~~js
+import { createServer } from "node:http";
+import { once } from "node:events";
+
+let representation = null;
+let submitted = 0;
+const server = createServer(async (request, response) => {
+  if (request.url !== "/item") {
+    response.writeHead(404).end();
+    return;
+  }
+  response.setHeader("Cache-Control", "no-store");
+  if (request.method === "GET") {
+    response.writeHead(representation === null ? 404 : 200).end(representation ?? "");
+  } else if (request.method === "HEAD") {
+    response.writeHead(representation === null ? 404 : 200).end();
+  } else if (request.method === "PUT") {
+    const chunks = [];
+    for await (const chunk of request) chunks.push(chunk);
+    representation = Buffer.concat(chunks).toString("utf8");
+    response.writeHead(204).end();
+  } else if (request.method === "DELETE") {
+    const present = representation !== null;
+    representation = null;
+    response.writeHead(present ? 204 : 404).end();
+  } else if (request.method === "POST") {
+    submitted++;
+    response.writeHead(201).end(String(submitted));
+  } else {
+    response.writeHead(405, { Allow: "GET, HEAD, PUT, POST, DELETE" }).end();
+  }
+});
+
+server.listen(0, "127.0.0.1");
+await once(server, "listening");
+const url = "http://127.0.0.1:" + server.address().port + "/item";
+try {
+  const put1 = await fetch(url, { method: "PUT", body: "ready" });
+  const put2 = await fetch(url, { method: "PUT", body: "ready" });
+  if (put1.status !== 204 || put2.status !== 204) throw new Error("PUT failed");
+
+  const get1 = await (await fetch(url)).text();
+  const get2 = await (await fetch(url)).text();
+  if (get1 !== "ready" || get2 !== "ready") throw new Error("GET changed the resource");
+
+  const head = await fetch(url, { method: "HEAD" });
+  if (head.status !== 200 || (await head.text()) !== "") throw new Error("HEAD body violation");
+
+  const post1 = await (await fetch(url, { method: "POST" })).text();
+  const post2 = await (await fetch(url, { method: "POST" })).text();
+  if (post1 === post2) throw new Error("POST did not change the counter");
+
+  const del1 = await fetch(url, { method: "DELETE" });
+  const del2 = await fetch(url, { method: "DELETE" });
+  if (del1.status !== 204 || del2.status !== 404) throw new Error("DELETE effect mismatch");
+} finally {
+  server.closeAllConnections();
+  await new Promise((resolve) => server.close(resolve));
+}
+~~~
+
+The example intentionally disables caching, uses process-local state, and does not prove crash durability, authentication, synchronization, resource concurrency safety or compliance for all RFC method requirements. It shows effects rather than universal response codes.
+
+## Failure modes
+
+- **State mutation on GET:** link previewing or prefetching can trigger unsafe commands.
+- **Equating idempotency with identical responses:** repeat DELETE can yield 404 after 204 while preserving the requested effect.
+- **Assuming POST retries are safe:** a lost response after a committed charge can lead to duplicates.
+- **Confusing cacheability with caching:** headers, authorization and RFC 9111 rules constrain reuse.
+- **Ignoring lost updates:** idempotent PUT alone does not solve concurrent version conflicts.
+- **Sending a HEAD body:** violates the standard even if internal endpoint logic is shared with GET.
+- **Treating verbs as security:** access control and validation remain separate obligations.
+
+## Trade-offs
+
+Correct method semantics improve interoperability, caching and retry reasoning, but not all business commands fit a simple resource replacement model. PUT is appropriate when the target URI and replacement contract are known; POST is appropriate for processing commands with potentially non-idempotent effects. Retry safety, locking and idempotency-key design remain explicit implementation choices.
+
+## Related concepts
+
+**REST** is an architectural style rather than a synonym for CRUD verbs. **Idempotency** is a repeated-effect property beyond HTTP, not a request header with automatic enforcement. **Webhook** receivers commonly handle POST but can implement deduplication separately. **Optimistic locking** and HTTP preconditions control stale writes independent of method idempotency.
+
+## Testing and verification
+
+- Run the Node.js loopback example; require a zero exit status.
+- Verify two PUT requests produce the same intended resource state and that GET/HEAD do not mutate it.
+- Check HEAD returns no body while GET returns a representation.
+- Check that repeated POST changes the in-memory counter **in this example**.
+- Intentionally make the GET response mutating and require a negative test to detect the violation.
+- Test production APIs separately for Allow headers, cache controls, authentication, conditional requests and concurrent races.
+
+## References
+
+- [RFC 9110 §9.2](https://www.rfc-editor.org/rfc/rfc9110#section-9.2) — safe, idempotent and cacheable method semantics.
+- [RFC 9110 §9.3](https://www.rfc-editor.org/rfc/rfc9110#section-9.3) — method definitions and constraints.
+- [RFC 9111](https://www.rfc-editor.org/rfc/rfc9111) — response caching and reuse rules.
+
+**Editorial status:** draft. No independent review claim or completed review date is asserted.

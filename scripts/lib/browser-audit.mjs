@@ -16,6 +16,8 @@ const DEFAULT_ROUTES = [
   '/operating-systems-memory/virtual-memory/',
   '/io-networking/input-output/',
   '/databases-transactions/transaction-isolation-levels/',
+  '/compilers-runtimes/abstract-syntax-tree/',
+  '/http-api-integration/http-method-semantics/',
 ];
 const SEARCHES = [
   ['idiomatic', '/programming-language-concepts/idiomatic-programming/'],
@@ -27,6 +29,8 @@ const SEARCHES = [
   ['virtual memory', '/operating-systems-memory/virtual-memory/'],
   ['input output', '/io-networking/input-output/'],
   ['transaction isolation levels', '/databases-transactions/transaction-isolation-levels/'],
+  ['abstract syntax tree', '/compilers-runtimes/abstract-syntax-tree/'],
+  ['http method semantics', '/http-api-integration/http-method-semantics/'],
 ];
 const PILOT_TITLES = new Map([
   ['/programming-language-concepts/idiomatic-programming/', 'Idiomatic Programming'],
@@ -38,6 +42,8 @@ const PILOT_TITLES = new Map([
   ['/operating-systems-memory/virtual-memory/', 'Virtual Memory'],
   ['/io-networking/input-output/', 'Input/Output (I/O)'],
   ['/databases-transactions/transaction-isolation-levels/', 'Transaction Isolation Levels'],
+  ['/compilers-runtimes/abstract-syntax-tree/', 'Abstract Syntax Tree (AST)'],
+  ['/http-api-integration/http-method-semantics/', 'HTTP Method Semantics'],
 ]);
 const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 

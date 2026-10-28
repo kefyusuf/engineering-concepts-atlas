@@ -12,6 +12,8 @@ export const REQUIRED_ROUTES = [
   '/operating-systems-memory/virtual-memory/',
   '/io-networking/input-output/',
   '/databases-transactions/transaction-isolation-levels/',
+  '/compilers-runtimes/abstract-syntax-tree/',
+  '/http-api-integration/http-method-semantics/',
   '/functional-programming/pure-function/',
 ];
 

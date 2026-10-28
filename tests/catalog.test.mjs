@@ -42,10 +42,10 @@ test('rejects duplicate concept IDs', () => {
   assert.match(validateCatalog(c).join(' '), /duplicate concept/i);
 });
 
-test('all categories have real navigable overview files, but nine M1 seed preview concept routes exist', () => {
+test('all categories have real navigable overview files, but eleven M1 seed preview concept routes exist', () => {
   const pages = readConceptPages(ROOT);
-  assert.equal(pages.length, 9);
-  assert.equal(pages.filter((p) => p.meta.editorialStatus === 'draft').length, 9);
+  assert.equal(pages.length, 11);
+  assert.equal(pages.filter((p) => p.meta.editorialStatus === 'draft').length, 11);
   assert.equal(pages.filter((p) => p.meta.editorialStatus === 'published').length, 0);
   assert.ok(pages.some((p) => p.meta.conceptId === 'types.type-inference'));
   assert.ok(pages.some((p) => p.meta.conceptId === 'functional.pure-function'));
@@ -53,6 +53,8 @@ test('all categories have real navigable overview files, but nine M1 seed previe
   assert.ok(pages.some((p) => p.meta.conceptId === 'os.virtual-memory'));
   assert.ok(pages.some((p) => p.meta.conceptId === 'io.input-output'));
   assert.ok(pages.some((p) => p.meta.conceptId === 'db.transaction-isolation-levels'));
+  assert.ok(pages.some((p) => p.meta.conceptId === 'compilers.abstract-syntax-tree'));
+  assert.ok(pages.some((p) => p.meta.conceptId === 'api.http-method-semantics'));
   const errors = auditSite(ROOT);
   assert.deepEqual(errors, []);
 });

@@ -3,7 +3,7 @@ title: Concept index A–Z
 description: Index of published and planned engineering concepts, clearly separated by editorial status.
 ---
 
-The initial catalog contains 100 concept candidates. **Nine editorial drafts are available in the public preview.** They are not approved technical references. Other names below are planned subjects, not verified documentation.
+The initial catalog contains 100 concept candidates. **Eleven editorial drafts are available in the public preview.** They are not approved technical references. Other names below are planned subjects, not verified documentation.
 
 ## Preview articles
 
@@ -16,6 +16,8 @@ The initial catalog contains 100 concept candidates. **Nine editorial drafts are
 - [Virtual Memory](/operating-systems-memory/virtual-memory/) — page tables, demand paging and MMU/TLB behavior.
 - [Input/Output (I/O)](/io-networking/input-output/) — partial transfers, blocking, asynchronous work and failure boundaries.
 - [Transaction Isolation Levels](/databases-transactions/transaction-isolation-levels/) — MVCC snapshots, write skew and serializable retries.
+- [Abstract Syntax Tree (AST)](/compilers-runtimes/abstract-syntax-tree/) — parse trees, traversal and type checking boundaries.
+- [HTTP Method Semantics](/http-api-integration/http-method-semantics/) — safe, idempotent and cacheable request behavior.
 
 ## All categories
 

@@ -1,0 +1,153 @@
+---
+{
+  "title": "Abstract Syntax Tree (AST)",
+  "description": "AST structure, parsing versus type checking, traversal, compiler transformations and failure modes.",
+  "contentType": "concept",
+  "conceptId": "compilers.abstract-syntax-tree",
+  "category": "compilers-runtimes",
+  "kind": "concept",
+  "aliases": [
+    "AST",
+    "Abstract Syntax Tree"
+  ],
+  "related": [
+    {
+      "conceptId": "compilers.compiler",
+      "relation": "related_to"
+    },
+    {
+      "conceptId": "compilers.interpreter",
+      "relation": "related_to"
+    },
+    {
+      "conceptId": "types.type-inference",
+      "relation": "related_to"
+    }
+  ],
+  "editorialStatus": "draft",
+  "sources": [
+    {
+      "title": "TypeScript — Using the Compiler API",
+      "url": "https://github.com/microsoft/TypeScript/wiki/Using-the-Compiler-API",
+      "role": "primary",
+      "scope": "TypeScript 5.x and 6.x SourceFile, createSourceFile, forEachChild; not a TypeScript 7.x API guarantee"
+    },
+    {
+      "title": "Babel Parser",
+      "url": "https://babeljs.io/docs/babel-parser",
+      "role": "primary",
+      "scope": "Babel-specific syntax representation and variations from ESTree"
+    },
+    {
+      "title": "Python ast module",
+      "url": "https://docs.python.org/3/library/ast.html",
+      "role": "primary",
+      "scope": "Python parser and AST node model illustrating that there is no universal AST layout"
+    }
+  ]
+}
+---
+
+:::caution[Editorial preview — not approved for publication]
+This M1.3 working draft distinguishes general compiler principles from TypeScript-specific tooling. Examples and sources require independent review before production publication.
+:::
+
+## Precise definition
+
+An **Abstract Syntax Tree (AST)** is a tree representation of source-code syntax in which nodes model program constructs—expressions, declarations, statements and control-flow structures—rather than every original character. It captures parser-recognized structure. An AST is not source text, a complete semantic model, or compiled machine code.
+
+The same program can have different node layouts in TypeScript, Babel and Python. AST interfaces are language- and parser-specific rather than a standard cross-language interchange schema.
+
+## Why it exists
+
+Text search and replacement cannot generally distinguish an identifier from text inside a string, or preserve operator grouping, scope and nested syntax. Parsers and compilers need structured forms to inspect and transform constructs. Linters, code generators, syntax-aware refactoring and IDE navigation all benefit from grammar-aware traversal.
+
+## Mental model
+
+An arithmetic expression is like a tree: an addition node connects a left operand and a right operand. Grouping is explicit and not reconstructed from visually similar strings. Yet a syntax tree alone cannot determine whether a name exists or what runtime effect its expression produces.
+
+## Mechanics and guarantees
+
+1. **Parsing:** a language grammar is applied to source or tokens, producing nodes and diagnostics. AST creation can succeed even when later semantic analysis fails.
+2. **Nodes:** each kind carries fields or children, for example a declaration name, initializer or binary operator.
+3. **Source spans:** many ASTs carry offsets useful for diagnostics and tooling, though original whitespace/comments may not be preserved in the same representation.
+4. **Traversal:** recursive visitors inspect child nodes. APIs such as TypeScript **forEachChild** make traversal explicit.
+5. **Semantic analysis:** resolution and type checking add facts not established by syntax alone. Syntactically valid unresolved names are a simple counterexample.
+6. **Transformations:** rewriting syntax trees can generate updated code, but identifier binding, comments and precedence may require extra analysis.
+7. **Lowering:** compilers often use intermediate representations after parsing; an AST is not interchangeable with a control-flow graph or machine code.
+
+**Version boundary:** the TypeScript Compiler API wiki covers TypeScript 6.0 and earlier. The example uses the TypeScript 5.x package already present in this repository. Its AST node APIs should not be assumed to work unchanged with future compiler versions.
+
+## Worked example
+
+This executable **Node.js ESM** example uses the existing TypeScript dependency. It parses a declaration, recursively finds its name and binary operator, and does **not** execute the source.
+
+~~~js
+import ts from "typescript";
+
+const source = ts.createSourceFile(
+  "calculation.ts",
+  "const total = 2 + 3;",
+  ts.ScriptTarget.ES2022,
+  true,
+  ts.ScriptKind.TS
+);
+if (source.parseDiagnostics.length !== 0) {
+  throw new Error("unexpected parse diagnostics");
+}
+
+const declarations = [];
+const operators = [];
+function walk(node) {
+  if (ts.isVariableDeclaration(node)) {
+    declarations.push(node.name.getText(source));
+  }
+  if (ts.isBinaryExpression(node)) {
+    operators.push(ts.tokenToString(node.operatorToken.kind));
+  }
+  ts.forEachChild(node, walk);
+}
+walk(source);
+
+if (declarations.join(",") !== "total") {
+  throw new Error("variable declaration missing");
+}
+if (operators.join(",") !== "+") {
+  throw new Error("binary expression missing");
+}
+~~~
+
+This demonstration verifies syntax-tree construction and visitation only. Changing the initializer to **missingName + 3** may still parse successfully, but a type checker can reject the unresolved name. Changing it to an incomplete expression produces parser diagnostics.
+
+## Failure modes
+
+- **AST versus CST confusion:** a concrete syntax tree may retain punctuation and trivia that an AST normalizes.
+- **Parse success presented as type correctness:** semantic errors can survive parsing.
+- **Unsafe renaming:** rewriting a matching name without scope resolution can change references to different variables.
+- **Comment loss:** node printers and transformation tools differ in how they preserve comments or formatting.
+- **Tool/version drift:** mixing TypeScript and Babel node definitions or compiler major versions can corrupt transformations.
+- **Unbounded visitor recursion:** maliciously or accidentally deeply nested programs can stress naive traversals.
+
+## Trade-offs
+
+ASTs provide structured, grammar-aware tooling at the cost of a parser dependency and language-specific APIs. Concrete syntax trees can be preferable for lossless formatting; lower-level IR can be preferable for complex compiler optimizations. Choose a representation based on what must be preserved and proved.
+
+## Related concepts
+
+**Compiler** encompasses parsing, semantic analysis and code generation. **Interpreter** may traverse an AST or use another internal representation. **Type Inference** is a type-system operation, not AST construction; see the [Type Inference preview](/type-systems/type-inference/). **Static analysis** can use AST nodes but requires more information for name binding and behavior-sensitive checks.
+
+## Testing and verification
+
+- Run the JavaScript snippet and assert the declaration and plus operator were found.
+- Change the source to a nested binary expression and inspect visitor results.
+- Change the example source to an invalid expression and assert parse diagnostics are non-empty.
+- Use a separate type checker to reject unresolved names despite successful parsing.
+- For transformations, inspect comments, references and generated output as separate acceptance criteria.
+
+## References
+
+- [TypeScript Compiler API wiki](https://github.com/microsoft/TypeScript/wiki/Using-the-Compiler-API) — parser, source files and visitor API.
+- [Babel Parser](https://babeljs.io/docs/babel-parser) — parser-specific syntax model.
+- [Python ast module](https://docs.python.org/3/library/ast.html) — independent example of AST node conventions.
+
+**Editorial status:** draft. No reviewer or completed review date is asserted.
