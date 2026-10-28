@@ -29,7 +29,8 @@ test('homepage retains every current editorial draft destination', () => {
     '/data-structures-algorithms/bloom-filter/',
     '/testing-verification/mutation-testing/',
   ];
-  for (const route of routes) assert.ok(home.includes('](' + route + ')'), 'missing editorial draft link ' + route);
+  for (const route of routes) assert.ok(home.includes('import.meta.env.BASE_URL + ' + JSON.stringify(route.slice(1))), 'missing base-prefixed editorial draft link ' + route);
+  assert.equal((home.match(/<li><a href=\{import\.meta\.env\.BASE_URL/g) ?? []).length, 13);
   assert.match(home, /thirteen|13/i);
   assert.match(home, /not independently reviewed/i);
 });
