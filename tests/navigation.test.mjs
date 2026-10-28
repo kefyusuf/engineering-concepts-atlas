@@ -9,7 +9,7 @@ const root = resolve(import.meta.dirname, '..');
 
 test('all authored source pages have resolvable root-relative Markdown and hero links', () => {
   const result = auditSourceNavigation(join(root, 'src/content/docs'));
-  assert.equal(result.pageCount, 32);
+  assert.equal(result.pageCount, 34);
   assert.ok(result.linkCount >= 10);
   assert.deepEqual(result.errors, []);
 });
