@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
 
 const ast = readFileSync(new URL('../src/content/docs/compilers-runtimes/abstract-syntax-tree.mdx', import.meta.url), 'utf8');
 const http = readFileSync(new URL('../src/content/docs/http-api-integration/http-method-semantics.mdx', import.meta.url), 'utf8');
@@ -13,7 +14,7 @@ function jsExample(article) {
 }
 function run(code) {
   return spawnSync(process.execPath, ['--input-type=module', '--eval', code], {
-    cwd: new URL('..', import.meta.url).pathname, encoding: 'utf8', timeout: 20000
+    cwd: fileURLToPath(new URL('..', import.meta.url)), encoding: 'utf8', timeout: 20000
   });
 }
 test('AST example parses and walks the documented declaration using TypeScript', () => {

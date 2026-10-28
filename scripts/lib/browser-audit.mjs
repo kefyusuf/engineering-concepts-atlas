@@ -16,6 +16,8 @@ const DEFAULT_ROUTES = [
   '/operating-systems-memory/virtual-memory/',
   '/io-networking/input-output/',
   '/databases-transactions/transaction-isolation-levels/',
+  '/compilers-runtimes/abstract-syntax-tree/',
+  '/http-api-integration/http-method-semantics/',
 ];
 const SEARCHES = [
   ['idiomatic', '/programming-language-concepts/idiomatic-programming/'],
