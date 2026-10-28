@@ -112,14 +112,14 @@ Then interleave two database sessions; both begin before either commits.
 
 | Session A | Session B |
 | --- | --- |
-| \`BEGIN ISOLATION LEVEL REPEATABLE READ;\` | \`BEGIN ISOLATION LEVEL REPEATABLE READ;\` |
-| \`SELECT count(*) FROM on_call WHERE active;\` → 2 | \`SELECT count(*) FROM on_call WHERE active;\` → 2 |
-| \`UPDATE on_call SET active = false WHERE doctor = 'alice';\` | \`UPDATE on_call SET active = false WHERE doctor = 'bob';\` |
-| \`COMMIT;\` | \`COMMIT;\` |
+| `BEGIN ISOLATION LEVEL REPEATABLE READ;` | `BEGIN ISOLATION LEVEL REPEATABLE READ;` |
+| `SELECT count(*) FROM on_call WHERE active;` → 2 | `SELECT count(*) FROM on_call WHERE active;` → 2 |
+| `UPDATE on_call SET active = false WHERE doctor = 'alice';` | `UPDATE on_call SET active = false WHERE doctor = 'bob';` |
+| `COMMIT;` | `COMMIT;` |
 
 Under this concurrent schedule, the two independent row updates **can both commit** at PostgreSQL Repeatable Read, producing zero active doctors despite the original invariant.
 
-Repeat the controlled experiment with **SERIALIZABLE** isolation in both sessions. PostgreSQL's Serializable Snapshot Isolation is designed to detect the dangerous dependency pattern and abort at least one transaction, which may surface as SQLSTATE \`40001\`. The application must retry the **complete** transaction, including the decision made from its reads. A retry after the first commit should see only one remaining active doctor and must not deactivate that last doctor.
+Repeat the controlled experiment with **SERIALIZABLE** isolation in both sessions. PostgreSQL's Serializable Snapshot Isolation is designed to detect the dangerous dependency pattern and abort at least one transaction, which may surface as SQLSTATE `40001`. The application must retry the **complete** transaction, including the decision made from its reads. A retry after the first commit should see only one remaining active doctor and must not deactivate that last doctor.
 
 **This is not guaranteed merely by writing the word SERIALIZABLE.** The application must actually run the invariant check and update together inside the transaction, handle aborts, and avoid external side effects escaping the retry boundary.
 
@@ -148,13 +148,13 @@ if (evaluateOnCallSchedule({ abortSecond: true }) !== 1) {
 }
 ~~~
 
-The \`abortSecond\` switch is an **assumption supplied by the model**, not an implementation of conflict detection. A real PostgreSQL test must use two connections with controlled interleaving and verify transaction outcomes.
+The `abortSecond` switch is an **assumption supplied by the model**, not an implementation of conflict detection. A real PostgreSQL test must use two connections with controlled interleaving and verify transaction outcomes.
 
 ## Failure modes
 
 - **Treating Repeatable Read as Serializable:** stable snapshots can still permit multi-row invariant violations.
 - **Assuming every database has PostgreSQL semantics:** products implement and name isolation levels differently.
-- **Retrying one SQL statement only:** SQLSTATE \`40001\` requires replaying the complete transaction logic, including reads that influenced decisions.
+- **Retrying one SQL statement only:** SQLSTATE `40001` requires replaying the complete transaction logic, including reads that influenced decisions.
 - **Non-idempotent external side effects:** an email, payment or webhook emitted before a transaction commits cannot be rolled back by the database.
 - **Long-running transactions:** keeping snapshots and resources open can increase contention, retention pressure and operational cost.
 - **Ignoring constraints:** unique constraints and explicit locks can enforce particular invariants; isolation alone does not replace schema design.
@@ -171,7 +171,7 @@ Read Committed can suit short operations that tolerate changes between statement
 ## Testing and verification
 
 - Run the SQL schedule on **two actual PostgreSQL connections** and verify both commits and the invariant violation at Repeatable Read. Reset fixture state between trials.
-- Repeat at Serializable and assert a serialization failure can prevent the unsafe outcome; record SQLSTATE \`40001\`.
+- Repeat at Serializable and assert a serialization failure can prevent the unsafe outcome; record SQLSTATE `40001`.
 - Retry from a **new transaction**, including a fresh predicate read; ensure it preserves the invariant.
 - Repeat the read-twice scenario under Read Committed and Repeatable Read to demonstrate statement versus transaction snapshots.
 - Execute the abstract JavaScript illustration separately, and clearly distinguish what it verifies from what only a database integration test can establish.
@@ -181,6 +181,6 @@ Read Committed can suit short operations that tolerate changes between statement
 
 - [PostgreSQL 18: Transaction Isolation](https://www.postgresql.org/docs/18/transaction-iso.html) — anomaly guarantees and PostgreSQL's isolation-level differences.
 - [PostgreSQL 18: MVCC Introduction](https://www.postgresql.org/docs/18/mvcc-intro.html) — versioned snapshots and visibility.
-- [PostgreSQL 18: Serialization Failure Handling](https://www.postgresql.org/docs/18/mvcc-serialization-failure-handling.html) — \`40001\` and whole-transaction retry.
+- [PostgreSQL 18: Serialization Failure Handling](https://www.postgresql.org/docs/18/mvcc-serialization-failure-handling.html) — `40001` and whole-transaction retry.
 
 **Editorial status:** draft. Independent review and PostgreSQL two-connection integration evidence remain outstanding.

@@ -78,10 +78,10 @@ Think of a courier transferring packages: a request to deliver eight packages ma
 ## Mechanics and guarantees
 
 - **Resource identification:** a Linux file descriptor refers to an open file description or socket; APIs manage handles, ownership and closing.
-- **Transfer size:** Linux \`read(2)\` attempts *up to* the requested count and may return fewer bytes without error. Returning zero for a regular file at end-of-file denotes EOF; sockets, pipes and other resources have their own completion rules.
-- **Partial writes:** \`write(2)\` may accept fewer bytes than requested. Correct protocols track bytes accepted and continue where appropriate; they do not blindly repeat a completed prefix.
-- **Blocking I/O:** a call may wait for readiness or completion before returning. *Non-blocking I/O* can return an indicator such as \`EAGAIN\` when it cannot proceed without waiting.
-- **Readiness versus completion:** Linux \`epoll\` reports readiness conditions for registered descriptors; readiness does not certify that an entire application-level request has completed.
+- **Transfer size:** Linux `read(2)` attempts *up to* the requested count and may return fewer bytes without error. Returning zero for a regular file at end-of-file denotes EOF; sockets, pipes and other resources have their own completion rules.
+- **Partial writes:** `write(2)` may accept fewer bytes than requested. Correct protocols track bytes accepted and continue where appropriate; they do not blindly repeat a completed prefix.
+- **Blocking I/O:** a call may wait for readiness or completion before returning. *Non-blocking I/O* can return an indicator such as `EAGAIN` when it cannot proceed without waiting.
+- **Readiness versus completion:** Linux `epoll` reports readiness conditions for registered descriptors; readiness does not certify that an entire application-level request has completed.
 - **Asynchronous APIs:** a Promise or callback lets the caller continue before a result is delivered. This is an application-level control-flow contract; it does not prove that the underlying device or operation uses a kernel non-blocking mechanism.
 - **Buffering and backpressure:** producers can outpace consumers. Bounded buffers, demand signals and controlled concurrency prevent unbounded memory growth.
 - **Durability:** successful buffered writes, OS cache updates and stable-media persistence are distinct; durability depends on the API, filesystem, device and flush protocol.
@@ -120,7 +120,7 @@ try {
 }
 ~~~
 
-This demonstrates a real file read with an explicit byte count. It does **not** prove non-blocking kernel I/O, safe concurrent writes, network reliability or persistence across power loss. The known three-byte fixture makes the expected first read deterministic for this regular file; the general \`read\` contract permits short reads for many reasons.
+This demonstrates a real file read with an explicit byte count. It does **not** prove non-blocking kernel I/O, safe concurrent writes, network reliability or persistence across power loss. The known three-byte fixture makes the expected first read deterministic for this regular file; the general `read` contract permits short reads for many reasons.
 
 ### A network read loop is different
 
@@ -130,7 +130,7 @@ For sockets, a producer may pause, send partial frames or close before the proto
 
 - **Assuming one read equals one message:** a TCP stream has no application-message boundaries.
 - **Assuming requested bytes were transferred:** ignoring the actual read/write byte count can truncate payloads.
-- **Busy-spinning on \`EAGAIN\`:** non-blocking readiness should be coordinated with readiness notification or another appropriate wait strategy.
+- **Busy-spinning on `EAGAIN`:** non-blocking readiness should be coordinated with readiness notification or another appropriate wait strategy.
 - **Confusing async with guaranteed non-blocking:** Promise-based I/O may use threads or other mechanisms underneath.
 - **Ignoring end-of-stream:** EOF, transient emptiness and invalid framing must not be conflated.
 - **Unbounded queues:** a fast producer can exhaust memory while a slow consumer catches up.
@@ -159,6 +159,6 @@ Synchronous APIs simplify localized control flow but can block an entire event l
 - [Linux read(2)](https://man7.org/linux/man-pages/man2/read.2.html) — byte counts, EOF, short reads and errors.
 - [Linux write(2)](https://man7.org/linux/man-pages/man2/write.2.html) — short writes and limitations.
 - [Linux epoll(7)](https://man7.org/linux/man-pages/man7/epoll.7.html) — readiness, non-blocking use and trigger modes.
-- [Node.js v22 File System](https://nodejs.org/docs/latest-v22.x/api/fs.html) — Promise APIs and \`FileHandle.read\`.
+- [Node.js v22 File System](https://nodejs.org/docs/latest-v22.x/api/fs.html) — Promise APIs and `FileHandle.read`.
 
-**Editorial status:** draft. No \`reviewedAt\` or reviewer is asserted.
+**Editorial status:** draft. No `reviewedAt` or reviewer is asserted.

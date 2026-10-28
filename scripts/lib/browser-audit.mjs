@@ -14,6 +14,8 @@ const DEFAULT_ROUTES = [
   '/functional-programming/pure-function/',
   '/oop-design-patterns/observer-pattern/',
   '/operating-systems-memory/virtual-memory/',
+  '/io-networking/input-output/',
+  '/databases-transactions/transaction-isolation-levels/',
 ];
 const SEARCHES = [
   ['idiomatic', '/programming-language-concepts/idiomatic-programming/'],
