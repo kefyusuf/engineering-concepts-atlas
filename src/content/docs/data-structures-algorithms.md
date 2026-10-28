@@ -6,7 +6,7 @@ contentType: category
 This category belongs to **Data & Distributed Computing**. It provides a navigational overview of five selected foundational and advanced terms.
 ## Catalog candidates
 > **Editorial status:** Catalog entries below are planned concepts, not independently reviewed articles. Pilot pages are clearly marked as drafts.
-- **Bloom Filter** — Planned; no article available yet.
+- [**Bloom Filter**](/data-structures-algorithms/bloom-filter/) — Editorial draft preview; independent review pending.
 - **Big O Notation** — Planned; no article available yet.
 - **Hash Table** — Planned; no article available yet.
 - **Directed Acyclic Graph (DAG)** — Planned; no article available yet.

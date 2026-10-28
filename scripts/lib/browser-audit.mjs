@@ -31,6 +31,8 @@ const SEARCHES = [
   ['transaction isolation levels', '/databases-transactions/transaction-isolation-levels/'],
   ['abstract syntax tree', '/compilers-runtimes/abstract-syntax-tree/'],
   ['http method semantics', '/http-api-integration/http-method-semantics/'],
+  ['bloom filter', '/data-structures-algorithms/bloom-filter/'],
+  ['mutation testing', '/testing-verification/mutation-testing/'],
 ];
 const PILOT_TITLES = new Map([
   ['/programming-language-concepts/idiomatic-programming/', 'Idiomatic Programming'],
@@ -44,6 +46,8 @@ const PILOT_TITLES = new Map([
   ['/databases-transactions/transaction-isolation-levels/', 'Transaction Isolation Levels'],
   ['/compilers-runtimes/abstract-syntax-tree/', 'Abstract Syntax Tree (AST)'],
   ['/http-api-integration/http-method-semantics/', 'HTTP Method Semantics'],
+  ['/data-structures-algorithms/bloom-filter/', 'Bloom Filter'],
+  ['/testing-verification/mutation-testing/', 'Mutation Testing'],
 ]);
 const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 

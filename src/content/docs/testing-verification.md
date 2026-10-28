@@ -6,7 +6,7 @@ contentType: category
 This category belongs to **Quality & Operations**. It provides a navigational overview of five selected foundational and advanced terms.
 ## Catalog candidates
 > **Editorial status:** Catalog entries below are planned concepts, not independently reviewed articles. Pilot pages are clearly marked as drafts.
-- **Mutation Testing** — Planned; no article available yet.
+- [**Mutation Testing**](/testing-verification/mutation-testing/) — Editorial draft preview; independent review pending.
 - **Test-Driven Development (TDD)** — Planned; no article available yet.
 - **Property-Based Testing** — Planned; no article available yet.
 - **Formal Verification** — Planned; no article available yet.

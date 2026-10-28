@@ -14,6 +14,8 @@ export const REQUIRED_ROUTES = [
   '/databases-transactions/transaction-isolation-levels/',
   '/compilers-runtimes/abstract-syntax-tree/',
   '/http-api-integration/http-method-semantics/',
+  '/data-structures-algorithms/bloom-filter/',
+  '/testing-verification/mutation-testing/',
   '/functional-programming/pure-function/',
 ];
 

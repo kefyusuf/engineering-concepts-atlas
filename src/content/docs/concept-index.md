@@ -3,7 +3,7 @@ title: Concept index A–Z
 description: Index of published and planned engineering concepts, clearly separated by editorial status.
 ---
 
-The initial catalog contains 100 concept candidates. **Eleven editorial drafts are available in the public preview.** They are not approved technical references. Other names below are planned subjects, not verified documentation.
+The initial catalog contains 100 concept candidates. **Thirteen editorial drafts are available in the public preview.** They are not approved technical references. Other names below are planned subjects, not verified documentation.
 
 ## Preview articles
 
@@ -18,6 +18,8 @@ The initial catalog contains 100 concept candidates. **Eleven editorial drafts a
 - [Transaction Isolation Levels](/databases-transactions/transaction-isolation-levels/) — MVCC snapshots, write skew and serializable retries.
 - [Abstract Syntax Tree (AST)](/compilers-runtimes/abstract-syntax-tree/) — parse trees, traversal and type checking boundaries.
 - [HTTP Method Semantics](/http-api-integration/http-method-semantics/) — safe, idempotent and cacheable request behavior.
+- [Bloom Filter](/data-structures-algorithms/bloom-filter/) — probabilistic membership, bit layouts and false-positive bounds.
+- [Mutation Testing](/testing-verification/mutation-testing/) — killed/survived mutants and test sensitivity.
 
 ## All categories
 
