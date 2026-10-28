@@ -12,6 +12,8 @@ const DEFAULT_ROUTES = [
   '/distributed-systems/idempotency/',
   '/type-systems/type-inference/',
   '/functional-programming/pure-function/',
+  '/oop-design-patterns/observer-pattern/',
+  '/operating-systems-memory/virtual-memory/',
 ];
 const SEARCHES = [
   ['idiomatic', '/programming-language-concepts/idiomatic-programming/'],
