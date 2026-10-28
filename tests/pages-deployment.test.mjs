@@ -51,8 +51,8 @@ test('static preview is explicitly non-production and discourages search indexin
   assert.match(astro, /title: 'Engineering Concepts Atlas'/);
   assert.match(astro, /collapsed: true/);
   assert.match(astro, /rebaseDocumentLinks/);
-  assert.match(home, /link: \.\/concept-index\//);
-  assert.match(home, /link: \.\/about\//);
+  assert.match(home, /href="\.\/concept-index\/"/);
+  assert.match(home, /href="\.\/about\/"/);
 });
 
 
