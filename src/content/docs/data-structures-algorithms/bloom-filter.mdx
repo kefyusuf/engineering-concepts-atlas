@@ -1,0 +1,155 @@
+---
+{
+  "title": "Bloom Filter",
+  "description": "Probabilistic membership filtering, false positives, hash/bit layout, sizing and the no-false-negative contract.",
+  "contentType": "concept",
+  "conceptId": "algorithms.bloom-filter",
+  "category": "data-structures-algorithms",
+  "kind": "concept",
+  "aliases": [
+    "Bloom Filtering",
+    "Probabilistic Membership Filter"
+  ],
+  "related": [
+    {
+      "conceptId": "algorithms.hash-table",
+      "relation": "contrasts_with"
+    },
+    {
+      "conceptId": "algorithms.big-o-notation",
+      "relation": "related_to"
+    },
+    {
+      "conceptId": "distributed.idempotency",
+      "relation": "related_to"
+    }
+  ],
+  "editorialStatus": "draft",
+  "sources": [
+    {
+      "title": "Burton H. Bloom (1970) — Space/Time Trade-offs in Hash Coding with Allowable Errors",
+      "url": "https://doi.org/10.1145/362686.362692",
+      "role": "primary",
+      "scope": "Original approximate-set-membership space/time trade-off and allowable false positives"
+    },
+    {
+      "title": "Guava BloomFilter.java implementation and API contract",
+      "url": "https://github.com/google/guava/blob/master/guava/src/com/google/common/hash/BloomFilter.java",
+      "role": "primary",
+      "scope": "Guava insertion, mightContain semantics, sizing estimates and false-positive behavior; implementation-specific"
+    },
+    {
+      "title": "Guava BloomFilter API",
+      "url": "https://guava.dev/releases/snapshot/api/docs/com/google/common/hash/BloomFilter.html",
+      "role": "vendor",
+      "scope": "Current Guava BloomFilter method semantics; snapshot API may evolve"
+    }
+  ]
+}
+---
+
+:::caution[Editorial preview — not approved for publication]
+This M1.3 page is a technical draft. The worked example is a small fixed-capacity educational implementation, **not** a production-ready or concurrency-safe Bloom filter.
+:::
+
+## Precise definition
+
+A **Bloom filter** is a compact probabilistic data structure that answers approximate set-membership queries. It maintains a bit array and uses several deterministic hash-derived bit positions. When inserting a value, the filter sets all of those positions. When querying, it reports **definitely absent** if any corresponding bit is zero and **possibly present** if all are one.
+
+For a standard insertion-only Bloom filter whose bit array is never cleared, and whose hashing, value normalization and bit layout remain consistent, an inserted value has **no false negatives**. It can have **false positives**: another value may map only to already-set bits. It never stores or returns the actual inserted elements.
+
+The no-false-negative statement is **conditional**. Data corruption, inconsistent normalization, changing hash parameters, unsynchronized updates or an unsupported deletion strategy can violate it in real implementations.
+
+## Why it exists
+
+A cache or disk-based dictionary lookup may be much more expensive than checking a few bits in memory. A Bloom filter can reject many definitely absent keys before consulting an authoritative store. False positives merely cause an extra lookup; false negatives could incorrectly skip a real record, so the usual design uses the filter as a *negative gate*, never as sole proof of a record's presence.
+
+Use cases include storage-engine key lookup optimization, avoiding unnecessary remote queries and coarse duplicate prechecks. A filter does **not** itself enforce uniqueness, authorization, payment deduplication or business correctness.
+
+## Mental model
+
+Imagine a shared board containing only marked squares. Every item maps to several squares, which are marked on insertion. If any square needed for an item is blank, the item was not inserted. But marks from several different items can cover all squares of an uninserted one. The board cannot tell you which items caused a mark.
+
+## Mechanics and guarantees
+
+1. **Bit layout:** allocate a bit array of size **m**, initialized entirely to zero.
+2. **Hash positions:** each input generates **k** positions in the range from zero to **m − 1**. The same bytes and configuration must produce the same positions on insertion and query.
+3. **Insert:** set all selected bits to one. Standard insertion is monotonic: bits do not return to zero.
+4. **Query:** return “possibly present” only when all positions are set. Return “definitely absent” otherwise.
+5. **Sizing:** assuming approximately uniform independent hashes, for **n** inserted distinct items, the estimated false-positive probability is **p ≈ (1 − exp(−kn/m))^k**. Approximate optimal choices satisfy **k ≈ (m/n) ln 2** and **m ≈ −n ln(p)/(ln 2)^2**.
+6. **Saturation:** as items accumulate beyond planned capacity, more bits become set and false-positive probability rises. Adding capacity after the fact generally requires a defined rebuild or scalable filter design.
+7. **Concurrency:** bit updates must be coordinated if multiple writers operate concurrently. An unsynchronized read during insertion may observe an incomplete update; a production system must define when an insert becomes visible.
+
+These probability expressions are approximations, not a guarantee that every sample of queries has precisely the target error rate. An implementation must also specify normalization, hash family, algorithm version and bit layout to make persisted filters compatible.
+
+## Worked example
+
+This runnable **Node.js ESM** example uses SHA-256 as a deterministic source for double-hash-derived positions, a 64-bit educational layout and three probes. The use of SHA-256 here is for convenient reproducibility, **not** for cryptographic authentication and not a claim that this small filter meets a production error budget.
+
+~~~js
+import { createHash } from "node:crypto";
+
+function createBloom(bitCount = 64, hashes = 3) {
+  if (!Number.isInteger(bitCount) || bitCount < 8) throw new RangeError("bitCount");
+  if (!Number.isInteger(hashes) || hashes < 1) throw new RangeError("hashes");
+  const bits = new Uint8Array(Math.ceil(bitCount / 8));
+
+  function positions(value) {
+    if (typeof value !== "string") throw new TypeError("string keys only");
+    const digest = createHash("sha256").update(value, "utf8").digest();
+    const first = digest.readUInt32BE(0);
+    const step = digest.readUInt32BE(4) || 1;
+    return Array.from({ length: hashes }, (_, i) => (first + i * step) % bitCount);
+  }
+
+  function add(value) {
+    for (const index of positions(value)) bits[index >> 3] |= 1 << (index & 7);
+  }
+  function mightContain(value) {
+    return positions(value).every((index) => (bits[index >> 3] & (1 << (index & 7))) !== 0);
+  }
+  return { add, mightContain };
+}
+
+const filter = createBloom();
+if (filter.mightContain("inserted")) throw new Error("new filter must be empty");
+filter.add("inserted");
+if (!filter.mightContain("inserted")) throw new Error("inserted item must remain a candidate");
+~~~
+
+This is intentionally not a serialization format, an optimized hash scheme or a production library. In particular, a small **m** can easily saturate, repeated positions reduce the effective number of distinct probes, and JavaScript's arithmetic/bitwise details require separate scrutiny when changing parameters.
+
+## Failure modes
+
+- **Positive means present:** treating “possibly present” as proof skips the required authoritative lookup.
+- **Unexpected false negatives:** changing normalization, hashing, layout or persisted version can make a previously inserted key query different positions.
+- **Incorrect deletion:** clearing a bit for one removed key may erase a bit still needed by another key. Standard Bloom filters do not support safe individual deletion.
+- **Capacity overrun:** overfilling raises false positives and increases expensive fallbacks.
+- **Race on visibility:** a reader observing partially updated state may report absence before a concurrent insertion completes.
+- **Untrusted inputs:** this structure is not a cryptographic proof or an authorization mechanism; deliberately chosen inputs can undermine performance if hashing is weak.
+- **Confusing false-positive rate with accuracy:** the query distribution, actual inserted count and hashing assumptions matter.
+
+## Trade-offs
+
+A Bloom filter can save memory and unnecessary external lookups by accepting a controlled false-positive rate. A hash set is exact but often costs more memory and can enumerate elements. A counting Bloom filter supports a form of deletion at higher memory cost and with its own overflow/underflow constraints; it is a different structure, not a free property of standard Bloom filters. When exact presence is required, query the underlying authoritative source.
+
+## Related concepts
+
+**Hash tables** generally store entries and support exact lookups; a Bloom filter only tests approximate membership. **Bitsets** are exact only when the universe of keys has a direct unique mapping to bit positions. **Idempotency** requires repeat-effect guarantees and an authoritative record; a Bloom filter alone is insufficient to suppress payment or order duplicates. See the [Idempotency draft](/distributed-systems/idempotency/). **Amortized analysis** is about average cost over operation sequences, not a Bloom filter's false-positive probability.
+
+## Testing and verification
+
+- Execute the Node example and assert insertion turns a previously absent key into a candidate.
+- Add multiple strings, query them all and assert **no false negatives** for the fixed configuration.
+- Use a deliberately tiny filter with many inserted strings and find a false positive; do not claim an exact empirical rate from a tiny trial.
+- For a negative test, change the query hash or normalization and show the insertion guarantee breaks.
+- Verify persistence and concurrency only in a dedicated implementation with versioned format and synchronization; this article does not claim those properties.
+- Compare a target false-positive budget with analytical sizing, then benchmark real data and an authoritative-store fallback.
+
+## References
+
+- [Bloom, 1970 — original paper](https://doi.org/10.1145/362686.362692) — trade-offs and approximate membership.
+- [Guava BloomFilter implementation](https://github.com/google/guava/blob/master/guava/src/com/google/common/hash/BloomFilter.java) — bit probes and false-positive handling.
+- [Guava BloomFilter API](https://guava.dev/releases/snapshot/api/docs/com/google/common/hash/BloomFilter.html) — **mightContain**, insertion and expected false-positive behavior.
+
+**Editorial status:** draft. Independent review is still required.

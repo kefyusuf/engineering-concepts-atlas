@@ -1,0 +1,152 @@
+---
+{
+  "title": "Mutation Testing",
+  "description": "Fault-seeding test assessment, killed/survived mutants, equivalent mutations and scoring limitations.",
+  "contentType": "concept",
+  "conceptId": "testing.mutation-testing",
+  "category": "testing-verification",
+  "kind": "concept",
+  "aliases": [
+    "Mutation Analysis",
+    "Mutation Score"
+  ],
+  "related": [
+    {
+      "conceptId": "testing.test-driven-development",
+      "relation": "related_to"
+    },
+    {
+      "conceptId": "testing.property-based-testing",
+      "relation": "related_to"
+    },
+    {
+      "conceptId": "testing.flaky-test",
+      "relation": "related_to"
+    }
+  ],
+  "editorialStatus": "draft",
+  "sources": [
+    {
+      "title": "Stryker Mutator — What is mutation testing?",
+      "url": "https://stryker-mutator.io/docs/",
+      "role": "primary",
+      "scope": "Source mutation, running a test suite against mutants, killed versus survived outcomes"
+    },
+    {
+      "title": "Stryker Mutator — Mutant states and metrics",
+      "url": "https://stryker-mutator.io/docs/mutation-testing-elements/mutant-states-and-metrics/",
+      "role": "primary",
+      "scope": "Stryker-specific killed, survived, no coverage, timeout and mutation score definitions"
+    },
+    {
+      "title": "PIT — Basic Concepts",
+      "url": "https://pitest.org/quickstart/basic_concepts/",
+      "role": "primary",
+      "scope": "PIT mutant outcomes, coverage targeting and mutation execution in JVM projects"
+    },
+    {
+      "title": "PIT — Command-line Quick Start",
+      "url": "https://pitest.org/quickstart/commandline/",
+      "role": "primary",
+      "scope": "PIT mutation score thresholds and limitations including equivalent mutations"
+    }
+  ]
+}
+---
+
+:::caution[Editorial preview — not approved for publication]
+This M1.3 article is an editorial draft. Its runnable example is a **manual miniature mutation experiment**, not a Stryker or PIT engine and not evidence of production test-suite quality.
+:::
+
+## Precise definition
+
+**Mutation testing** evaluates a test suite by deliberately introducing small program changes called **mutants** and checking whether the existing tests detect them. If a test fails against a mutant (and passes against the original program), that mutant is **killed**. If tests continue to pass, it **survives**, raising a question about missing assertions, insufficient boundary inputs or behavioral equivalence.
+
+Mutation testing tests the **tests**, not merely the source code. It is distinct from line coverage: executing a line does not prove an assertion would detect an incorrect operator on that line.
+
+## Why it exists
+
+A test can visit a function and assert nothing meaningful. Traditional line coverage may count that function as covered while a behavioral regression remains undetected. Mutation testing asks a stronger, bounded question: *would these specific tests reject a realistic small defect introduced at this location?*
+
+It is useful when strengthening correctness-sensitive calculations, public API contracts, validation boundaries and code with deceptive high coverage.
+
+## Mental model
+
+A reviewer intentionally changes “greater than or equal to” into “greater than” and reruns the tests. If a boundary test fails, it caught the faulty behavior. If all tests still pass, investigate the missing boundary case—unless the change is behaviorally equivalent for every reachable input.
+
+The analogy has a limit: a killed set of sampled mutants does not prove the absence of real defects, and the selected mutation operators may not resemble every production failure mode.
+
+## Mechanics and guarantees
+
+1. **Baseline:** first ensure the test suite passes on the unchanged code. Otherwise, failure cannot be confidently attributed to a mutation.
+2. **Generate mutants:** operators alter arithmetic, comparison boundaries, boolean conditions, constants or return values. Tools choose syntax-aware changes applicable to the language.
+3. **Run selected tests:** each mutant is evaluated in an isolated run or equivalent controlled execution context, often using coverage and test timings to reduce cost.
+4. **Classify:** common states include **killed**, **survived**, **no coverage**, **timeout** and **error/invalid**. Exact categories and denominator rules are tool-specific.
+5. **Interpret:** a survivor may expose a test gap, dead/unreachable code or an **equivalent mutant** that changes syntax but not externally observable behavior.
+6. **Act:** add a meaningful assertion or input where there is an actual behavioral gap; avoid writing brittle tests that merely encode implementation details.
+
+**Tool boundary:** Stryker's mutation-score conventions count killed and timed-out mutants as detected and survived/no-coverage mutants as undetected; errored mutations are excluded according to its documentation. PIT has its own states and thresholds. Do not treat every vendor score as numerically identical.
+
+## Worked example
+
+A boundary rule says adults are age **18 or older**. Changing **>=** to **>** is a plausible mutation. The weak test set covers ages 17 and 19 but misses exactly 18. The strong test includes the boundary and kills the mutant.
+
+This runnable **Node.js ESM** example uses no new dependencies:
+
+~~~js
+import assert from "node:assert/strict";
+
+const eligible = (age) => age >= 18;
+const mutant = (age) => age > 18;
+
+const weakCases = [[17, false], [19, true]];
+const strongCases = [[17, false], [18, true], [19, true]];
+function suitePasses(fn, cases) {
+  return cases.every(([age, expected]) => fn(age) === expected);
+}
+
+assert.equal(suitePasses(eligible, weakCases), true);
+assert.equal(suitePasses(mutant, weakCases), true); // Survived weak suite.
+assert.equal(suitePasses(eligible, strongCases), true);
+assert.equal(suitePasses(mutant, strongCases), false); // Killed by boundary assertion.
+~~~
+
+The example simulates **one** explicit mutant and two suites. It does not perform program rewriting, mutation discovery, tool-specific scoring or automatic mutant execution.
+
+## Failure modes
+
+- **Equivalent mutants:** the altered program may behave identically for all relevant inputs. Killing it might be impossible or meaningless.
+- **No-coverage mutants:** tests never reach a mutation location, so assertions cannot detect it.
+- **Weak assertions:** execution coverage is high, yet a faulty outcome is never compared with a meaningful expected value.
+- **Flaky test outcomes:** nondeterministic failures can falsely appear to kill mutants; stabilize the baseline first.
+- **Timeout ambiguity:** infinite loops may be detected by timeouts, but environment slowness and resource contention can also produce them.
+- **Oversized scope:** mutating an entire monorepo creates long, costly runs and noisy feedback.
+- **Score gaming:** removing challenging code from mutation scope or adding implementation-specific assertions can inflate a metric without improving behavior verification.
+
+## Trade-offs
+
+Mutation testing is more computationally expensive than ordinary unit tests because it executes suites against many changed variants. Focus on high-risk modules, stable fast tests and meaningful mutation operators. Mutation score can be a useful trend but must be interpreted with tool settings, exclusions and equivalent mutations. A threshold is a policy choice, not an objective definition of a correct system.
+
+Mutation testing complements property-based testing and boundary-value analysis; it cannot replace integration tests, concurrency testing, security review, or formal proofs.
+
+## Related concepts
+
+**Test-Driven Development** orders work as failing tests, minimal implementation and refactoring. Mutation testing instead evaluates whether an existing test suite detects simulated faults; it can be used after a TDD cycle. **Property-Based Testing** searches across generated inputs and can kill mutants missed by a few hand-picked examples. **Flaky Test** means a test outcome can vary without an intended code change, complicating classification and mutation scores.
+
+## Testing and verification
+
+- Run the example and verify the weak suite passes for both implementations while the strong suite rejects the boundary mutant.
+- Remove the 18-year-old case from the strong suite and assert the negative verification fails.
+- Construct a deliberately equivalent mutant and explain why no meaningful input distinguishes it.
+- For real JavaScript mutation analysis, evaluate a separately configured Stryker project and record the tool version, selected operators, timeouts and exclusion rules.
+- For JVM projects, PIT can report killed/survived/no-coverage mutants; compare results only with the same configuration and source revision.
+- Never assert that a passing illustrative example alone produces a project-wide mutation score.
+
+## References
+
+- [Stryker — Mutation Testing](https://stryker-mutator.io/docs/) — introduction and mutant execution.
+- [Stryker — Mutant States and Metrics](https://stryker-mutator.io/docs/mutation-testing-elements/mutant-states-and-metrics/) — status and score definitions.
+- [PIT — Basic Concepts](https://pitest.org/quickstart/basic_concepts/) — JVM tool outcomes and execution model.
+- [PIT — Mutation Thresholds](https://pitest.org/quickstart/commandline/) — score thresholds and equivalent mutation caveat.
+
+**Editorial status:** draft. Independent review has not taken place.
