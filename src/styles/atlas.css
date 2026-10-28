@@ -47,6 +47,18 @@
   --atlas-button-text: #ffffff;
 }
 
+/* A distinct article heading, while category pages retain Starlight navigation. */
+.content-panel:not(:has(.atlas-home)) > .sl-container > h1#_top {
+  padding-block: .85rem 1.15rem;
+  margin-bottom: .15rem;
+  border-bottom: 1px solid var(--atlas-line);
+  font-size: clamp(2.05rem, 3.1vw, 2.9rem);
+  font-weight: 760;
+  line-height: 1.15;
+  letter-spacing: -.047em;
+  text-wrap: balance;
+}
+
 /* A clean information layer across docs and articles. */
 .sl-markdown-content {
   font-size: 1.06rem;

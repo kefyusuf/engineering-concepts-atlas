@@ -52,6 +52,8 @@ test('reading design has responsive content, code, callout and accessible focus 
   assert.match(css, /\.atlas-quickstart/);
   assert.match(css, /\.atlas-directory/);
   assert.match(css, /\.sl-markdown-content/);
+  assert.ok(css.includes('.content-panel:not(:has(.atlas-home))'));
+
   assert.match(css, /\.starlight-aside/);
   assert.match(css, /:focus-visible/);
   assert.ok(css.includes('body:has(.atlas-home)'));
