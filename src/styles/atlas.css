@@ -1,20 +1,364 @@
+/*
+ * Atlas editorial reading system — M1.3 design refinement.
+ * Static Starlight layout remains the foundation: no JS, no fonts, no theme plugin.
+ * Semantic tokens follow Starlight's dark/light data-theme switch.
+ */
 :root {
-  --sl-color-accent-low: #102a3e;
-  --sl-color-accent: #61d5c0;
-  --sl-color-accent-high: #d4fff7;
-  --sl-font: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  --sl-font-mono: ui-monospace, 'Cascadia Code', 'SFMono-Regular', Menlo, Consolas, monospace;
+  --sl-font: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --sl-font-mono: ui-monospace, "Cascadia Code", "SFMono-Regular", Menlo, Consolas, monospace;
+  --sl-content-width: 53rem;
+  --sl-sidebar-width: 17.5rem;
+  --sl-color-accent-low: #163831;
+  --sl-color-accent: #92d0ba;
+  --sl-color-accent-high: #e1f9ed;
+  --atlas-surface: #101922;
+  --atlas-raised: #15212b;
+  --atlas-ink: #edf2f2;
+  --atlas-muted: #a7b7bc;
+  --atlas-line: #32444a;
+  --atlas-link: #a0dbc7;
+  --atlas-focus: #b7e5cc;
 }
+
 :root[data-theme='light'] {
-  --sl-color-accent-low: #d9faf2;
-  --sl-color-accent: #0b715e;
-  --sl-color-accent-high: #123d34;
+  --sl-color-accent-low: #e3f2ed;
+  --sl-color-accent: #22594f;
+  --sl-color-accent-high: #153e35;
+  --atlas-surface: #ffffff;
+  --atlas-raised: #f5f8f7;
+  --atlas-ink: #182d31;
+  --atlas-muted: #51666b;
+  --atlas-line: #dce6e3;
+  --atlas-link: #205a4e;
+  --atlas-focus: #215f54;
 }
-.sl-markdown-content h2 { padding-top: .6rem; }
-.sl-markdown-content h2:not(:first-child) { border-top: 1px solid var(--sl-color-hairline-light); }
-.sl-markdown-content p { line-height: 1.77; }
-.sl-markdown-content code { font-size: .91em; }
-.sl-markdown-content blockquote { border-inline-start-color: var(--sl-color-accent); }
-.hero h1 { letter-spacing: -.045em; }
-.hero .tagline { max-width: 52rem; }
-.sl-markdown-content .starlight-aside { border-radius: .7rem; }
+
+/* Reading first: slightly narrower line lengths, calmer headings and predictable spacing. */
+.sl-markdown-content {
+  font-size: 1rem;
+  line-height: 1.75;
+}
+
+.sl-markdown-content > p,
+.sl-markdown-content > ul,
+.sl-markdown-content > ol {
+  max-width: 74ch;
+}
+
+.sl-markdown-content p { line-height: 1.76; }
+
+.sl-markdown-content h2:not(:first-child) {
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--atlas-line);
+}
+
+.sl-markdown-content h2,
+.sl-markdown-content h3 {
+  letter-spacing: -0.027em;
+  line-height: 1.28;
+  text-wrap: balance;
+}
+
+.sl-markdown-content h2 { margin-block-start: 2.75rem; }
+.sl-markdown-content h3 { margin-block-start: 1.75rem; }
+
+.sl-markdown-content :not(pre) > code {
+  font-size: .88em;
+  border-radius: .3rem;
+}
+
+.sl-markdown-content table {
+  font-size: .92rem;
+}
+
+.sl-markdown-content th {
+  text-align: left;
+}
+
+.sl-markdown-content blockquote {
+  border-inline-start-color: var(--sl-color-accent);
+}
+
+.sl-markdown-content .starlight-aside {
+  border-radius: .55rem;
+}
+
+/* The stock Starlight hero stays semantic; typography and whitespace are restrained. */
+.hero {
+  padding-block: clamp(2.25rem, 5.5vw, 4.75rem);
+  border-bottom: 1px solid var(--atlas-line);
+}
+
+.hero h1 {
+  max-width: 18ch;
+  font-size: clamp(2.4rem, 5vw, 4.2rem);
+  letter-spacing: -.058em;
+  line-height: 1.09;
+  text-wrap: balance;
+}
+
+.hero .tagline {
+  max-width: 43rem;
+  line-height: 1.65;
+  font-size: clamp(1rem, 1.45vw, 1.15rem);
+  text-wrap: pretty;
+}
+
+.hero .actions a {
+  border-radius: .4rem;
+  font-weight: 600;
+}
+
+/* Editorial home: no gallery, badges-as-decoration, gradients, or 13 identical cards. */
+.atlas-home {
+  --atlas-home-spacing: clamp(2rem, 5vw, 4.5rem);
+  max-width: 70rem;
+  margin-inline: auto;
+  color: var(--atlas-ink);
+}
+
+.atlas-home-meta {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: .6rem 1.5rem;
+  padding-block: 1rem;
+  border-bottom: 1px solid var(--atlas-line);
+  color: var(--atlas-muted);
+  font-family: var(--sl-font-mono);
+  font-size: .69rem;
+  font-weight: 600;
+  letter-spacing: .06em;
+}
+
+.atlas-preview-notice {
+  display: flex;
+  align-items: flex-start;
+  gap: .85rem;
+  padding: 1.1rem 1.15rem;
+  margin-block-start: 1.75rem;
+  border: 1px solid var(--atlas-line);
+  border-radius: .5rem;
+  background: var(--atlas-raised);
+}
+
+.atlas-status-mark {
+  display: block;
+  flex: 0 0 .53rem;
+  width: .53rem;
+  height: .53rem;
+  margin-top: .51rem;
+  border: 1.5px solid var(--atlas-link);
+  border-radius: 50%;
+}
+
+.atlas-preview-notice strong {
+  font-size: .9rem;
+  font-weight: 660;
+  letter-spacing: -.01em;
+}
+
+.atlas-preview-notice p {
+  max-width: 78ch;
+  margin-block: .3rem 0;
+  color: var(--atlas-muted);
+  font-size: .87rem;
+  line-height: 1.65;
+}
+
+.atlas-intro {
+  max-width: 51rem;
+  padding-block: var(--atlas-home-spacing) clamp(1.5rem, 4vw, 2.5rem);
+}
+
+.atlas-intro .atlas-eyebrow,
+.atlas-directory-kicker {
+  color: var(--atlas-muted);
+  font-family: var(--sl-font-mono);
+  font-size: .72rem;
+  font-weight: 700;
+  letter-spacing: .075em;
+}
+
+.atlas-intro h2 {
+  margin-block: .8rem 1rem;
+  padding: 0;
+  border: 0;
+  font-size: clamp(1.85rem, 3vw, 2.65rem);
+  line-height: 1.16;
+  letter-spacing: -.048em;
+}
+
+.atlas-intro > p:last-child {
+  max-width: 63ch;
+  color: var(--atlas-muted);
+  font-size: 1.07rem;
+  line-height: 1.76;
+}
+
+.atlas-principles {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  border-top: 1px solid var(--atlas-line);
+  border-bottom: 1px solid var(--atlas-line);
+}
+
+.atlas-principle {
+  padding: 1.5rem 1.4rem 1.5rem 0;
+  min-width: 0;
+}
+
+.atlas-principle + .atlas-principle {
+  padding-inline-start: 1.4rem;
+  border-inline-start: 1px solid var(--atlas-line);
+}
+
+.atlas-principle-number {
+  display: block;
+  margin-bottom: .9rem;
+  color: var(--atlas-muted);
+  font: 600 .7rem var(--sl-font-mono);
+  letter-spacing: .04em;
+}
+
+.atlas-principle strong {
+  display: block;
+  font-size: 1.05rem;
+  letter-spacing: -.02em;
+}
+
+.atlas-principle p {
+  margin-block: .35rem 0;
+  color: var(--atlas-muted);
+  font-size: .89rem;
+  line-height: 1.62;
+}
+
+.atlas-directory {
+  padding-block: var(--atlas-home-spacing);
+}
+
+.atlas-directory > h2 {
+  margin: 0 0 .65rem;
+  padding: 0;
+  border: 0;
+  font-size: clamp(1.65rem, 2.5vw, 2.2rem);
+}
+
+.atlas-directory > p {
+  max-width: 66ch;
+  margin-block: 0 1.85rem;
+  color: var(--atlas-muted);
+  font-size: .96rem;
+}
+
+.atlas-directory-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.5rem 2rem;
+}
+
+.atlas-directory-group {
+  min-width: 0;
+  padding: 1.25rem 0 0;
+  border-top: 1px solid var(--atlas-line);
+}
+
+.atlas-directory-group .atlas-directory-kicker {
+  margin: 0 0 .4rem;
+}
+
+.atlas-directory-group h3 {
+  margin: 0 0 .7rem;
+  font-size: 1.13rem;
+  font-weight: 680;
+}
+
+.atlas-directory-group ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.atlas-directory-group li {
+  margin: 0;
+  border-bottom: 1px solid var(--atlas-line);
+}
+
+.atlas-directory-group li a {
+  display: block;
+  padding: .78rem 1.3rem .78rem .05rem;
+  color: var(--atlas-ink);
+  font-weight: 540;
+  font-size: .92rem;
+  line-height: 1.5;
+  text-decoration: none;
+  position: relative;
+}
+
+.atlas-directory-group li a::after {
+  content: "↗";
+  position: absolute;
+  right: .05rem;
+  color: var(--atlas-muted);
+  font-weight: 400;
+}
+
+.atlas-directory-group li a:hover {
+  color: var(--atlas-link);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: .25em;
+}
+
+.atlas-home-footer {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: .75rem 1.5rem;
+  padding-block: 1rem 2rem;
+  border-top: 1px solid var(--atlas-line);
+  color: var(--atlas-muted);
+  font: 500 .75rem var(--sl-font-mono);
+}
+
+/* Respect keyboard navigation across the documentation shell and custom directory. */
+:focus-visible {
+  outline: 2px solid var(--atlas-focus);
+  outline-offset: 3px;
+  border-radius: .2rem;
+}
+
+/* Sidebar preserves native behavior; only reading density is adjusted. */
+.sidebar-content {
+  font-size: .88rem;
+  line-height: 1.55;
+}
+
+@media (max-width: 48rem) {
+  .hero { padding-block: 2.15rem; }
+  .hero h1 { font-size: clamp(2.1rem, 9vw, 3.1rem); }
+  .atlas-home-meta { font-size: .65rem; }
+  .atlas-intro { padding-block: 2.65rem 1.5rem; }
+  .atlas-intro h2 { font-size: clamp(1.85rem, 7vw, 2.4rem); }
+  .atlas-intro > p:last-child { font-size: .99rem; }
+  .atlas-principles { grid-template-columns: 1fr; }
+  .atlas-principle,
+  .atlas-principle + .atlas-principle {
+    padding: 1rem 0;
+    border-inline-start: 0;
+  }
+  .atlas-principle + .atlas-principle { border-top: 1px solid var(--atlas-line); }
+  .atlas-principle-number { margin-bottom: .4rem; }
+  .atlas-directory-grid { grid-template-columns: 1fr; gap: 2rem; }
+  .atlas-preview-notice { padding: .95rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .atlas-home *, .hero * {
+    scroll-behavior: auto;
+    transition-duration: 0.01ms;
+    animation-duration: 0.01ms;
+  }
+}

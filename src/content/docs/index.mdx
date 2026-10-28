@@ -1,87 +1,109 @@
 ---
 title: Engineering Concepts Atlas
-description: A rigorous, source-backed atlas of software engineering and computer science concepts.
+description: A quiet, evidence-led field guide to software engineering concepts.
 template: splash
 hero:
-  title: Engineering Concepts Atlas
-  tagline: From definitions to engineering guarantees — understand how systems behave, where they fail, and how to verify them.
+  title: Understand the system, not just the term.
+  tagline: A technical field guide to definitions, guarantees, failure modes and the evidence behind them.
   actions:
-    - text: Browse concepts
+    - text: Browse the concept index
       link: ./concept-index/
       icon: right-arrow
-    - text: Read about the project
+    - text: About the atlas
       link: ./about/
       variant: minimal
 ---
-import { Card, CardGrid } from '@astrojs/starlight/components';
 
-## Think beyond the definition
+<div class="atlas-home">
 
-Most glossaries tell you what a term means. This atlas asks a second question: **under precisely which conditions does the concept hold?**
+  <div class="atlas-home-meta">
+    <span>ENGINEERING CONCEPTS ATLAS / FIELD GUIDE</span>
+    <span>13 DRAFT ARTICLES · 20 CATEGORIES</span>
+  </div>
 
-<CardGrid>
-  <Card title="Semantics first">
-    Scope, assumptions, invariants and guarantees before analogies.
-  </Card>
-  <Card title="Failure-aware">
-    Concurrency hazards, counterexamples, trade-offs and boundaries.
-  </Card>
-  <Card title="Evidence-led">
-    Primary sources, review status and concrete ways to verify claims.
-  </Card>
-  <Card title="Language-independent">
-    Transferable principles with clearly labelled language-specific examples.
-  </Card>
-</CardGrid>
+  <aside class="atlas-preview-notice" role="note" aria-label="Editorial preview status">
+    <span class="atlas-status-mark" aria-hidden="true"></span>
+    <div>
+      <strong>Public editorial preview — not approved for publication</strong>
+      <p>These thirteen articles are working drafts, not independently reviewed technical references. Treat examples as learning material and verify production decisions against the cited sources.</p>
+    </div>
+  </aside>
 
-## PUBLIC EDITORIAL PREVIEW — NOT A RELEASE
+  <section class="atlas-intro" aria-label="How this reference works">
+    <p class="atlas-eyebrow">HOW TO READ THIS ATLAS</p>
+    <h2>Understand the guarantee.<br />See where it breaks.</h2>
+    <p>Each article starts with the exact meaning, explains the mechanism, then examines counterexamples, engineering trade-offs and practical verification. Less terminology to memorize. More reasoning you can reuse.</p>
+  </section>
 
-This public preview is **unfinished and not independently verified**. Do not rely on its technical articles as an approved reference.
+  <div class="atlas-principles" aria-label="Editorial principles">
+    <div class="atlas-principle">
+      <span class="atlas-principle-number">01 / SEMANTICS</span>
+      <strong>Be precise.</strong>
+      <p>Separate definitions and implementation-specific behavior.</p>
+    </div>
+    <div class="atlas-principle">
+      <span class="atlas-principle-number">02 / FAILURE MODES</span>
+      <strong>Find the boundary.</strong>
+      <p>Study the assumptions, exceptions and counterexamples.</p>
+    </div>
+    <div class="atlas-principle">
+      <span class="atlas-principle-number">03 / EVIDENCE</span>
+      <strong>Test the claim.</strong>
+      <p>Use runnable examples, primary sources and review status.</p>
+    </div>
+  </div>
 
-## Current editorial preview
+  <section class="atlas-directory" aria-label="Current concept articles">
 
-This **M1.3 editorial preview** contains thirteen substantial but **unapproved draft** articles. They are accessible for local testing; **they are not independently reviewed or cleared for public release**.
+## Explore the current articles
 
-<CardGrid>
-  <Card title="Idiomatic Programming">
-    [When convention is not a language rule.](/programming-language-concepts/idiomatic-programming/)
-  </Card>
-  <Card title="Atomic Operation">
-    [Single-operation indivisibility versus multi-step safety.](/concurrency-parallelism/atomic-operation/)
-  </Card>
-  <Card title="Idempotency">
-    [Retries, request identities and durable effects.](/distributed-systems/idempotency/)
-  </Card>
-  <Card title="Type Inference">
-    [Compiler inference, constraints and runtime validation boundaries.](/type-systems/type-inference/)
-  </Card>
-  <Card title="Pure Function">
-    [Side effects, determinism and referential transparency.](/functional-programming/pure-function/)
-  </Card>
-  <Card title="Observer Pattern">
-    [Subscription contracts, reentrancy and delivery boundaries.](/oop-design-patterns/observer-pattern/)
-  </Card>
-  <Card title="Virtual Memory">
-    [Address translation, page faults and memory protection.](/operating-systems-memory/virtual-memory/)
-  </Card>
-  <Card title="Input/Output (I/O)">
-    [Blocking, readiness, asynchronous APIs and partial byte transfers.](/io-networking/input-output/)
-  </Card>
-  <Card title="Transaction Isolation Levels">
-    [MVCC, SQL anomalies, write skew and serializable retries.](/databases-transactions/transaction-isolation-levels/)
-  </Card>
-  <Card title="Abstract Syntax Tree (AST)">
-    [Parsing, syntax traversal, code transforms and type-checker boundaries.](/compilers-runtimes/abstract-syntax-tree/)
-  </Card>
-  <Card title="HTTP Method Semantics">
-    [Safety, idempotency, caching and HTTP retry effects.](/http-api-integration/http-method-semantics/)
-  </Card>
-  <Card title="Bloom Filter">
-    [Probabilistic membership, capacity and false-positive trade-offs.](/data-structures-algorithms/bloom-filter/)
-  </Card>
-  <Card title="Mutation Testing">
-    [How deliberate code mutations expose weak tests.](/testing-verification/mutation-testing/)
-  </Card>
-</CardGrid>
+Thirteen in-depth draft articles are available. Browse the grouped reading list or use the [complete concept index](/concept-index/) for all 20 categories and 100 planned concepts.
 
-**Browse all 20 categories** using the sidebar or [A–Z concept index](/concept-index/). The other 87 candidate entries are *planned*, not fabricated published articles.
+    <div class="atlas-directory-grid">
+
+      <div class="atlas-directory-group">
+        <p class="atlas-directory-kicker">01 / BUILDING SOFTWARE</p>
+
+### Language & design
+
+- [Idiomatic Programming](/programming-language-concepts/idiomatic-programming/)
+- [Type Inference](/type-systems/type-inference/)
+- [Pure Function](/functional-programming/pure-function/)
+- [Observer Pattern](/oop-design-patterns/observer-pattern/)
+- [Abstract Syntax Tree (AST)](/compilers-runtimes/abstract-syntax-tree/)
+
+      </div>
+
+      <div class="atlas-directory-group">
+        <p class="atlas-directory-kicker">02 / SYSTEM BEHAVIOR</p>
+
+### Runtime, data & protocols
+
+- [Atomic Operation](/concurrency-parallelism/atomic-operation/)
+- [Virtual Memory](/operating-systems-memory/virtual-memory/)
+- [Input/Output (I/O)](/io-networking/input-output/)
+- [Transaction Isolation Levels](/databases-transactions/transaction-isolation-levels/)
+- [Idempotency](/distributed-systems/idempotency/)
+- [HTTP Method Semantics](/http-api-integration/http-method-semantics/)
+
+      </div>
+
+      <div class="atlas-directory-group">
+        <p class="atlas-directory-kicker">03 / MEASURING CORRECTNESS</p>
+
+### Data structures & verification
+
+- [Bloom Filter](/data-structures-algorithms/bloom-filter/)
+- [Mutation Testing](/testing-verification/mutation-testing/)
+
+      </div>
+
+    </div>
+  </section>
+
+  <div class="atlas-home-footer">
+    <span>13 articles in preview / 87 subjects planned</span>
+    <span>No tracking scripts, accounts or interactive services.</span>
+  </div>
+
+</div>
