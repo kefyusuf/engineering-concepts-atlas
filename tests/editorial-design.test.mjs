@@ -10,6 +10,8 @@ test('homepage uses a curated editorial directory, not thirteen identical market
   assert.match(home, /atlas-principles/);
   assert.match(home, /atlas-directory/);
   assert.match(home, /atlas-preview-notice/);
+  assert.match(home, /<h2>Explore the current articles<\/h2>/);
+  assert.match(home, /<h3>Language & design<\/h3>/);
   assert.doesNotMatch(home, /<CardGrid|<Card /);
 });
 

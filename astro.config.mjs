@@ -16,7 +16,7 @@ export default defineConfig({
   // No server adapter: the M1 site is entirely static.
   integrations: [
     starlight({
-      title: pages.preview ? 'Engineering Concepts Atlas — Editorial Preview' : 'Engineering Concepts Atlas',
+      title: 'Engineering Concepts Atlas',
       description: 'Technical concepts, precise guarantees, failure modes, and primary sources.',
       customCss: ['./src/styles/atlas.css'],
       favicon: '/favicon.svg',
@@ -25,8 +25,10 @@ export default defineConfig({
         { label: 'Explore', items: [{ label: 'Home', link: '/' }, { slug: 'concept-index' }] },
         ...groups.map((group) => ({
           label: group.label,
+          collapsed: true,
           items: group.categories.map((category) => ({
             label: category.label,
+            collapsed: true,
             items: [
               { slug: category.id, label: 'Category overview' },
               ...catalog.concepts
