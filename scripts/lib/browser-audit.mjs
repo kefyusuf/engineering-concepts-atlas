@@ -14,6 +14,8 @@ const DEFAULT_ROUTES = [
   '/functional-programming/pure-function/',
   '/oop-design-patterns/observer-pattern/',
   '/operating-systems-memory/virtual-memory/',
+  '/io-networking/input-output/',
+  '/databases-transactions/transaction-isolation-levels/',
 ];
 const SEARCHES = [
   ['idiomatic', '/programming-language-concepts/idiomatic-programming/'],
@@ -23,6 +25,8 @@ const SEARCHES = [
   ['pure function', '/functional-programming/pure-function/'],
   ['observer pattern', '/oop-design-patterns/observer-pattern/'],
   ['virtual memory', '/operating-systems-memory/virtual-memory/'],
+  ['input output', '/io-networking/input-output/'],
+  ['transaction isolation levels', '/databases-transactions/transaction-isolation-levels/'],
 ];
 const PILOT_TITLES = new Map([
   ['/programming-language-concepts/idiomatic-programming/', 'Idiomatic Programming'],
@@ -32,6 +36,8 @@ const PILOT_TITLES = new Map([
   ['/functional-programming/pure-function/', 'Pure Function'],
   ['/oop-design-patterns/observer-pattern/', 'Observer Pattern'],
   ['/operating-systems-memory/virtual-memory/', 'Virtual Memory'],
+  ['/io-networking/input-output/', 'Input/Output (I/O)'],
+  ['/databases-transactions/transaction-isolation-levels/', 'Transaction Isolation Levels'],
 ]);
 const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 

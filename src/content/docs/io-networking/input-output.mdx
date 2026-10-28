@@ -1,0 +1,164 @@
+---
+{
+  "title": "Input/Output (I/O)",
+  "description": "I/O boundaries, blocking versus asynchronous operations, partial transfers, readiness and durability guarantees.",
+  "contentType": "concept",
+  "conceptId": "io.input-output",
+  "category": "io-networking",
+  "kind": "concept",
+  "aliases": [
+    "I/O",
+    "Input and Output",
+    "Input/Output"
+  ],
+  "related": [
+    {
+      "conceptId": "io.blocking-io",
+      "relation": "related_to"
+    },
+    {
+      "conceptId": "io.nonblocking-io",
+      "relation": "related_to"
+    },
+    {
+      "conceptId": "io.backpressure",
+      "relation": "related_to"
+    }
+  ],
+  "editorialStatus": "draft",
+  "sources": [
+    {
+      "title": "Linux man-pages — read(2)",
+      "url": "https://man7.org/linux/man-pages/man2/read.2.html",
+      "role": "primary",
+      "scope": "Linux file-descriptor reads, partial transfers, EOF, EINTR, EAGAIN and nonblocking behavior"
+    },
+    {
+      "title": "Linux man-pages — write(2)",
+      "url": "https://man7.org/linux/man-pages/man2/write.2.html",
+      "role": "primary",
+      "scope": "Linux file-descriptor writes, short writes and their limits, not universal durability"
+    },
+    {
+      "title": "Linux man-pages — epoll(7)",
+      "url": "https://man7.org/linux/man-pages/man7/epoll.7.html",
+      "role": "primary",
+      "scope": "Linux readiness notification and edge/level triggered semantics"
+    },
+    {
+      "title": "Node.js v22 — File system API",
+      "url": "https://nodejs.org/docs/latest-v22.x/api/fs.html",
+      "role": "primary",
+      "scope": "Node.js v22 Promise-based file operations and FileHandle.read API"
+    }
+  ]
+}
+---
+
+:::caution[Editorial preview — not approved for publication]
+This M1.3 draft distinguishes operating-system contracts from application APIs. Language-specific claims and source versions require independent review before production use.
+:::
+
+## Precise definition
+
+**Input/Output (I/O)** is the exchange of data between a program and something outside its current computation: files, sockets, terminals, devices or other processes. Reading bytes from a file or receiving a network message is input; writing a file or sending a response is output. An I/O operation has a boundary, a transfer direction, a completion condition and a documented error model.
+
+I/O does not necessarily mean communicating with a remote server or disk platter. Buffered operations can be served from caches; devices may be virtual. Conversely, a successful call does not necessarily mean bytes are durable on nonvolatile storage or acknowledged by a remote application.
+
+## Why it exists
+
+Software needs to persist state, communicate and observe external events. Compared with CPU-local arithmetic, I/O introduces timing uncertainty, partial completion, retries, capacity limits, failures and side effects. A system design that treats every read as immediate, every write as complete and every message as exactly once can silently truncate data or mishandle outages.
+
+A useful design separates *what data means* from *how it crosses an external boundary*. The second part carries I/O-specific policy: errors, buffering, timeouts, cancellation, retry safety and resource ownership.
+
+## Mental model
+
+Think of a courier transferring packages: a request to deliver eight packages may result in fewer being accepted before the courier must try again. A receipt at the loading dock does not prove that the destination warehouse permanently stored them. The analogy fails when interpreted as a guarantee of retries: repeating a network write can duplicate a logical action if the protocol is not repeat-safe.
+
+## Mechanics and guarantees
+
+- **Resource identification:** a Linux file descriptor refers to an open file description or socket; APIs manage handles, ownership and closing.
+- **Transfer size:** Linux `read(2)` attempts *up to* the requested count and may return fewer bytes without error. Returning zero for a regular file at end-of-file denotes EOF; sockets, pipes and other resources have their own completion rules.
+- **Partial writes:** `write(2)` may accept fewer bytes than requested. Correct protocols track bytes accepted and continue where appropriate; they do not blindly repeat a completed prefix.
+- **Blocking I/O:** a call may wait for readiness or completion before returning. *Non-blocking I/O* can return an indicator such as `EAGAIN` when it cannot proceed without waiting.
+- **Readiness versus completion:** Linux `epoll` reports readiness conditions for registered descriptors; readiness does not certify that an entire application-level request has completed.
+- **Asynchronous APIs:** a Promise or callback lets the caller continue before a result is delivered. This is an application-level control-flow contract; it does not prove that the underlying device or operation uses a kernel non-blocking mechanism.
+- **Buffering and backpressure:** producers can outpace consumers. Bounded buffers, demand signals and controlled concurrency prevent unbounded memory growth.
+- **Durability:** successful buffered writes, OS cache updates and stable-media persistence are distinct; durability depends on the API, filesystem, device and flush protocol.
+
+The Linux calls cited above describe **Linux-specific system-call behavior**. Node.js adds its own async interface. Do not assume those exact error codes or descriptor semantics apply to every operating system, language or device.
+
+## Worked example
+
+This executable **Node.js v22 ESM** example reads a file into a buffer *larger* than the stored content, then checks the exact byte count and EOF. It uses a temporary directory and closes the handle before cleanup.
+
+~~~js
+import { mkdtemp, open, rm } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+
+const folder = await mkdtemp(join(tmpdir(), "atlas-io-"));
+try {
+  const handle = await open(join(folder, "example.bin"), "w+");
+  try {
+    await handle.writeFile(Buffer.from("abc"));
+    const buffer = Buffer.alloc(8);
+
+    const first = await handle.read(buffer, 0, buffer.length, 0);
+    if (first.bytesRead !== 3) throw new Error("expected three bytes");
+    if (buffer.subarray(0, first.bytesRead).toString() !== "abc") {
+      throw new Error("unexpected input");
+    }
+
+    const atEof = await handle.read(buffer, 0, buffer.length, 3);
+    if (atEof.bytesRead !== 0) throw new Error("expected EOF");
+  } finally {
+    await handle.close();
+  }
+} finally {
+  await rm(folder, { recursive: true, force: true });
+}
+~~~
+
+This demonstrates a real file read with an explicit byte count. It does **not** prove non-blocking kernel I/O, safe concurrent writes, network reliability or persistence across power loss. The known three-byte fixture makes the expected first read deterministic for this regular file; the general `read` contract permits short reads for many reasons.
+
+### A network read loop is different
+
+For sockets, a producer may pause, send partial frames or close before the protocol is complete. A correct consumer maintains framing (length prefix, delimiter or protocol parser), handles timeouts, distinguishes EOF from temporarily unavailable data, and applies backpressure rather than buffering indefinitely.
+
+## Failure modes
+
+- **Assuming one read equals one message:** a TCP stream has no application-message boundaries.
+- **Assuming requested bytes were transferred:** ignoring the actual read/write byte count can truncate payloads.
+- **Busy-spinning on `EAGAIN`:** non-blocking readiness should be coordinated with readiness notification or another appropriate wait strategy.
+- **Confusing async with guaranteed non-blocking:** Promise-based I/O may use threads or other mechanisms underneath.
+- **Ignoring end-of-stream:** EOF, transient emptiness and invalid framing must not be conflated.
+- **Unbounded queues:** a fast producer can exhaust memory while a slow consumer catches up.
+- **Premature durability claims:** an API returning success is not by itself proof of a crash-safe persistence contract.
+- **Unsafe retry:** repeating a non-idempotent external effect can duplicate data or actions.
+
+## Trade-offs
+
+Synchronous APIs simplify localized control flow but can block an entire event loop when invoked on its thread. Asynchronous APIs improve concurrency management while introducing cancellation, concurrency limits and error-propagation complexity. Non-blocking descriptors and readiness loops can efficiently multiplex many connections, yet introduce state-machine complexity. Buffered I/O improves throughput but increases latency uncertainty and memory needs; synchronous durability barriers add cost but may be necessary for critical state.
+
+## Related concepts
+
+**Blocking vs non-blocking** concerns whether an attempt may wait for progress. **Synchronous vs asynchronous** concerns when the caller learns an outcome. They are independent dimensions. **Event Loop** describes one coordination strategy; it does not eliminate waiting within kernel paths. **Backpressure** limits outstanding work. **Idempotency** addresses replaying a logical effect across retries, not the byte-transfer semantics of a read or write. See the [Idempotency preview](/distributed-systems/idempotency/).
+
+## Testing and verification
+
+- Run the Node.js example and require exit status zero.
+- Change the expected first byte count to eight and confirm the negative assertion fails.
+- Test empty files, premature EOF, partially filled buffers and repeated reads at a fixed offset.
+- In an actual socket integration test, fragment a logical message across several writes and verify framing is reconstructed correctly.
+- Inject delays, cancellation and closed-resource errors, and record which layer returns them.
+- For durability claims, design storage-specific crash-recovery tests; this documentation-only project does not claim to execute such tests.
+
+## References
+
+- [Linux read(2)](https://man7.org/linux/man-pages/man2/read.2.html) — byte counts, EOF, short reads and errors.
+- [Linux write(2)](https://man7.org/linux/man-pages/man2/write.2.html) — short writes and limitations.
+- [Linux epoll(7)](https://man7.org/linux/man-pages/man7/epoll.7.html) — readiness, non-blocking use and trigger modes.
+- [Node.js v22 File System](https://nodejs.org/docs/latest-v22.x/api/fs.html) — Promise APIs and `FileHandle.read`.
+
+**Editorial status:** draft. No `reviewedAt` or reviewer is asserted.
