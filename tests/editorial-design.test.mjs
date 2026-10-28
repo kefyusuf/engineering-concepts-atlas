@@ -54,6 +54,7 @@ test('reading design has responsive content, code, callout and accessible focus 
   assert.match(css, /\.sl-markdown-content/);
   assert.match(css, /\.starlight-aside/);
   assert.match(css, /:focus-visible/);
+  assert.match(css, /body:has\\(\\.atlas-home\\)/);
   assert.match(css, /@media\s*\(max-width:\s*48rem\)/);
   assert.match(css, /prefers-reduced-motion/);
   assert.match(css, /:root\[data-theme='light'\]/);

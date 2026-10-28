@@ -345,6 +345,11 @@
   letter-spacing: .015em;
 }
 
+/* Starlight's splash shell adds a duplicate title and previous/next footer.
+ * Hide that chrome only on the homepage, which supplies its own accessible H1. */
+body:has(.atlas-home) .content-panel:has(> .sl-container > h1#_top) { display: none; }
+body:has(.atlas-home) .content-panel:has(.atlas-home) > .sl-container > footer { display: none; }
+
 /* Keyboard focus visibility always wins over the brand styling. */
 :focus-visible {
   outline: 3px solid var(--atlas-focus);
@@ -364,8 +369,9 @@
   .atlas-masthead-foot { gap: .5rem; }
   .atlas-quickstart { padding: 1rem 1.2rem; }
   .atlas-quickstart a { padding-block: .9rem; }
-  .atlas-preview-notice { align-items: flex-start; flex-wrap: wrap; }
-  .atlas-preview-notice a { margin-inline-start: 1.25rem; }
+  .atlas-preview-notice { display: block; position: relative; padding-left: 1.65rem; }
+  .atlas-preview-marker { position: absolute; left: .72rem; top: 1.12rem; }
+  .atlas-preview-notice a { display: inline-block; margin-top: .4rem; margin-inline-start: 0; }
   .atlas-directory { padding-block: 2.6rem 2rem; }
   .atlas-directory-grid { grid-template-columns: 1fr; gap: 1.2rem; }
   .atlas-directory-group { padding-bottom: 1.4rem; }
