@@ -1,6 +1,6 @@
 import { createServer } from 'node:http';
 import { spawnSync, spawn } from 'node:child_process';
-import { existsSync, readFileSync, mkdtempSync, rmSync, statSync } from 'node:fs';
+import { existsSync, readFileSync, writeFileSync, mkdirSync, mkdtempSync, rmSync, statSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve, extname, sep, win32, isAbsolute } from 'node:path';
 import { pagesConfig } from './pages-config.mjs';
@@ -203,7 +203,7 @@ async function navigate(cdp, url, route, basePath = '') {
   return page;
 }
 
-export async function runBrowserAudit(distRoot, { routes = DEFAULT_ROUTES, basePath = pagesConfig().base } = {}) {
+export async function runBrowserAudit(distRoot, { routes = DEFAULT_ROUTES, basePath = pagesConfig().base, screenshotsDir } = {}) {
   if (!existsSync(join(distRoot, 'index.html'))) throw new Error('Missing static site: build first');
   const chrome = findBrowser();
   if (!chrome) throw new Error('Chromium/Chrome not found; set CHROME_BIN');
@@ -239,6 +239,17 @@ export async function runBrowserAudit(distRoot, { routes = DEFAULT_ROUTES, baseP
     if (pilotPagesChecked !== PILOT_TITLES.size) {
       throw new Error(`Expected ${PILOT_TITLES.size} pilot articles in browser routes; checked ${pilotPagesChecked}`);
     }
+    if (screenshotsDir) {
+      // Captured from the verified static build, never from a mockup.
+      mkdirSync(screenshotsDir, { recursive: true });
+      await cdp.send('Emulation.setDeviceMetricsOverride', { width: 1440, height: 900, deviceScaleFactor: 1, mobile: false });
+      await navigate(cdp, baseUrl, '/', basePath);
+      const home = await cdp.send('Page.captureScreenshot', { format: 'png', captureBeyondViewport: true });
+      writeFileSync(join(screenshotsDir, 'home-desktop.png'), Buffer.from(home.data, 'base64'));
+      await navigate(cdp, baseUrl, '/distributed-systems/idempotency/', basePath);
+      const article = await cdp.send('Page.captureScreenshot', { format: 'png', captureBeyondViewport: true });
+      writeFileSync(join(screenshotsDir, 'article-desktop.png'), Buffer.from(article.data, 'base64'));
+    }
     await navigate(cdp, baseUrl, '/', basePath);
     for (const [term, expected] of SEARCHES) {
       const actual = await evaluate(cdp, `(async () => {
@@ -254,6 +265,10 @@ export async function runBrowserAudit(distRoot, { routes = DEFAULT_ROUTES, baseP
     await navigate(cdp, baseUrl, '/', basePath);
     const mobile = await evaluate(cdp, '({innerWidth: window.innerWidth, scrollWidth: document.documentElement.scrollWidth})');
     if (mobile.scrollWidth > mobile.innerWidth + 2) throw new Error(`Mobile horizontal layout overflow: ${mobile.scrollWidth} > ${mobile.innerWidth}`);
+    if (screenshotsDir) {
+      const phone = await cdp.send('Page.captureScreenshot', { format: 'png', captureBeyondViewport: true });
+      writeFileSync(join(screenshotsDir, 'home-mobile.png'), Buffer.from(phone.data, 'base64'));
+    }
     return { pagesChecked: routes.length, pilotPagesChecked, searchesChecked: SEARCHES.length, mobileWidth: mobile.innerWidth, mobileScrollWidth: mobile.scrollWidth, basePath, browser: chrome };
   } finally {
     if (cdp) cdp.close();

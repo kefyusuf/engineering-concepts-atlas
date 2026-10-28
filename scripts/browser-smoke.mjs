@@ -19,7 +19,8 @@ const routes = ['/', '/about/', '/concept-index/', ...categories.map(c => `/${c}
   '/testing-verification/mutation-testing/',
   '/functional-programming/pure-function/'];
 try {
-  const result = await runBrowserAudit(resolve(root, 'dist'), { routes });
+  const screenshotsDir = process.env.ATLAS_CAPTURE_SCREENSHOTS === 'true' ? resolve(root, 'evidence/ci/screenshots') : undefined;
+  const result = await runBrowserAudit(resolve(root, 'dist'), { routes, screenshotsDir });
   console.log('Browser smoke PASS:', JSON.stringify(result, null, 2));
 } catch (error) {
   console.error('Browser smoke FAIL:', error.message);

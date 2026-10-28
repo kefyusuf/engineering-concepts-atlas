@@ -45,9 +45,11 @@ test('Pages workflow deploys only after successful main-branch CI, never for PR'
 });
 
 test('static preview is explicitly non-production and discourages search indexing', () => {
-  assert.match(home, /PUBLIC EDITORIAL PREVIEW — NOT A RELEASE/);
+  assert.match(home, /Public editorial preview — not approved for publication/i);
+  assert.match(home, /not independently reviewed/i);
   assert.match(astro, /noindex, nofollow/);
-  assert.match(astro, /Engineering Concepts Atlas — Editorial Preview/);
+  assert.match(astro, /title: 'Engineering Concepts Atlas'/);
+  assert.match(astro, /collapsed: true/);
   assert.match(astro, /rebaseDocumentLinks/);
   assert.match(home, /link: \.\/concept-index\//);
   assert.match(home, /link: \.\/about\//);

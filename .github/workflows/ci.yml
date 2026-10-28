@@ -64,6 +64,8 @@ jobs:
           npm run build 2>&1 | tee evidence/ci/astro-build.txt
 
       - name: Verify actual Chromium and Pagefind behavior
+        env:
+          ATLAS_CAPTURE_SCREENSHOTS: 'true'
         shell: bash
         run: |
           set -o pipefail
