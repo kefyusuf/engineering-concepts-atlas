@@ -6,7 +6,7 @@ contentType: category
 This category belongs to **Runtime & Systems**. It provides a navigational overview of five selected foundational and advanced terms.
 ## Catalog candidates
 > **Editorial status:** Catalog entries below are planned concepts, not independently reviewed articles. Pilot pages are clearly marked as drafts.
-- **Input/Output (I/O)** — Planned; no article available yet.
+- [**Input/Output (I/O)**](/io-networking/input-output/) — Editorial draft preview; independent review pending.
 - **Blocking I/O** — Planned; no article available yet.
 - **Non-blocking I/O** — Planned; no article available yet.
 - **Event Loop** — Planned; no article available yet.
