@@ -6,7 +6,7 @@ contentType: category
 This category belongs to **Runtime & Systems**. It provides a navigational overview of five selected foundational and advanced terms.
 ## Catalog candidates
 > **Editorial status:** Catalog entries below are planned concepts, not independently reviewed articles. Pilot pages are clearly marked as drafts.
-- **Abstract Syntax Tree (AST)** — Planned; no article available yet.
+- [**Abstract Syntax Tree (AST)**](/compilers-runtimes/abstract-syntax-tree/) — Editorial draft preview; independent review pending.
 - **Compiler** — Planned; no article available yet.
 - **Interpreter** — Planned; no article available yet.
 - **Just-in-Time Compilation** — Planned; no article available yet.

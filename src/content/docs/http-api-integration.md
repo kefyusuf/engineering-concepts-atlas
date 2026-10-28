@@ -6,7 +6,7 @@ contentType: category
 This category belongs to **Data & Distributed Computing**. It provides a navigational overview of five selected foundational and advanced terms.
 ## Catalog candidates
 > **Editorial status:** Catalog entries below are planned concepts, not independently reviewed articles. Pilot pages are clearly marked as drafts.
-- **HTTP Method Semantics** — Planned; no article available yet.
+- [**HTTP Method Semantics**](/http-api-integration/http-method-semantics/) — Editorial draft preview; independent review pending.
 - **REST** — Planned; no article available yet.
 - **Webhook** — Planned; no article available yet.
 - **Content Negotiation** — Planned; no article available yet.
