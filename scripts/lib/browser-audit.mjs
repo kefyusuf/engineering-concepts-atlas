@@ -18,6 +18,8 @@ const DEFAULT_ROUTES = [
   '/databases-transactions/transaction-isolation-levels/',
   '/compilers-runtimes/abstract-syntax-tree/',
   '/http-api-integration/http-method-semantics/',
+  '/data-structures-algorithms/bloom-filter/',
+  '/testing-verification/mutation-testing/',
 ];
 const SEARCHES = [
   ['idiomatic', '/programming-language-concepts/idiomatic-programming/'],
