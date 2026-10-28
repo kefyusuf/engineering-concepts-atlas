@@ -1,0 +1,186 @@
+---
+{
+  "title": "Transaction Isolation Levels",
+  "description": "Read Committed, Repeatable Read, Serializable, MVCC snapshots, write skew and transaction retry boundaries.",
+  "contentType": "concept",
+  "conceptId": "db.transaction-isolation-levels",
+  "category": "databases-transactions",
+  "kind": "concept",
+  "aliases": [
+    "SQL Isolation Levels",
+    "Transaction Isolation"
+  ],
+  "related": [
+    {
+      "conceptId": "db.acid",
+      "relation": "related_to"
+    },
+    {
+      "conceptId": "db.mvcc",
+      "relation": "related_to"
+    },
+    {
+      "conceptId": "db.serializability",
+      "relation": "related_to"
+    },
+    {
+      "conceptId": "concurrency.atomic-operation",
+      "relation": "contrasts_with"
+    }
+  ],
+  "editorialStatus": "draft",
+  "sources": [
+    {
+      "title": "PostgreSQL 18 — Transaction Isolation",
+      "url": "https://www.postgresql.org/docs/18/transaction-iso.html",
+      "role": "primary",
+      "scope": "PostgreSQL 18 isolation-level behavior, anomaly matrix and Serializable Snapshot Isolation"
+    },
+    {
+      "title": "PostgreSQL 18 — MVCC Introduction",
+      "url": "https://www.postgresql.org/docs/18/mvcc-intro.html",
+      "role": "primary",
+      "scope": "PostgreSQL 18 snapshot visibility and multiversion concurrency"
+    },
+    {
+      "title": "PostgreSQL 18 — Serialization Failure Handling",
+      "url": "https://www.postgresql.org/docs/18/mvcc-serialization-failure-handling.html",
+      "role": "primary",
+      "scope": "PostgreSQL transaction retries, SQLSTATE 40001 and whole-transaction retry requirements"
+    }
+  ]
+}
+---
+
+:::caution[Editorial preview — not approved for publication]
+This M1.3 article is an unreviewed draft. The concrete anomaly table and SQL examples describe PostgreSQL 18, not universal behavior of every database engine.
+:::
+
+## Precise definition
+
+A **transaction isolation level** defines which interference from *concurrent transactions* a database permits or prevents. Isolation is one element of ACID; it does not mean that a transaction is physically executed alone or that every level is serializable. A database can interleave operations while giving some or all transactions a defined consistency view.
+
+The SQL standard describes **Read Uncommitted**, **Read Committed**, **Repeatable Read** and **Serializable**. Their guarantees are specified in terms of anomalies; implementation techniques and stronger-than-minimum guarantees differ across products and versions. Here, the concrete behavioral claims are restricted to **PostgreSQL 18**.
+
+## Why it exists
+
+Consider two on-call doctors. A business invariant requires at least one doctor on call. Both doctors begin concurrent transactions, observe that two people are on call and independently remove themselves. If each transaction updates a *different row*, a system that only prevents conflicting writes to the same row can commit both and violate the combined invariant.
+
+Other applications need different visibility contracts: a reporting transaction may require a stable snapshot; a simple status lookup might tolerate committed changes between statements. The isolation setting is part of a correctness/performance decision, not just a tuning parameter.
+
+## Mental model
+
+Imagine snapshots of a shared whiteboard. With one policy, each new look sees the most recently committed board; with another, the same reader retains a stable transaction-level view. A stable picture does **not** guarantee that two different people can safely act on their snapshots together: an invariant spanning both actions may still fail. Serializable adds a stronger condition—committed results must be explainable as some one-at-a-time transaction ordering.
+
+## Mechanics and guarantees
+
+For **PostgreSQL 18**, the relevant behavior is:
+
+| Requested level | Snapshot / visibility | Important boundary |
+| --- | --- | --- |
+| Read Uncommitted | Behaves as **Read Committed** in PostgreSQL | PostgreSQL does not expose uncommitted changes via this mode |
+| Read Committed | A new statement can use a new committed snapshot | Nonrepeatable reads and phantoms are possible across statements |
+| Repeatable Read | Stable snapshot for the transaction, established at its first non-transaction-control statement | PostgreSQL prevents phantom reads here, but serialization anomalies such as write skew remain possible |
+| Serializable | Committed transactions must correspond to a serial execution | PostgreSQL can abort conflicting transactions; applications must retry correctly |
+
+**MVCC** (multi-version concurrency control) is one mechanism for maintaining versions and snapshots. It is *not* an isolation level, and snapshot isolation on its own is not the same as serializability.
+
+### Distinguishing anomalies
+
+- **Dirty read:** observing an uncommitted update that another transaction might roll back. PostgreSQL prevents this even at its Read Uncommitted setting.
+- **Nonrepeatable read:** reading the same row twice and observing another transaction's intervening committed change.
+- **Phantom read:** rerunning a predicate query and observing a different qualifying row set due to another committed transaction.
+- **Write skew:** concurrent transactions read an overlapping invariant and update disjoint rows, allowing a joint violation under snapshot-based isolation without serializability.
+- **Lost update:** a read/modify/write application pattern can overwrite another effect, depending on the SQL shape and concurrency control; the exact treatment is engine- and level-dependent.
+
+**Read Committed nuance:** a statement-level snapshot describes its usual visibility, but write commands encountering concurrently updated target rows have additional PostgreSQL rules; do not infer a universal single-snapshot guarantee for every write command.
+
+## Worked example
+
+The following is a **two-session PostgreSQL 18 teaching script**, not something this repository runs in CI. First initialize the table in a separate session:
+
+~~~sql
+CREATE TABLE on_call (
+  doctor text PRIMARY KEY,
+  active boolean NOT NULL
+);
+INSERT INTO on_call (doctor, active)
+VALUES ('alice', true), ('bob', true);
+~~~
+
+Then interleave two database sessions; both begin before either commits.
+
+| Session A | Session B |
+| --- | --- |
+| \`BEGIN ISOLATION LEVEL REPEATABLE READ;\` | \`BEGIN ISOLATION LEVEL REPEATABLE READ;\` |
+| \`SELECT count(*) FROM on_call WHERE active;\` → 2 | \`SELECT count(*) FROM on_call WHERE active;\` → 2 |
+| \`UPDATE on_call SET active = false WHERE doctor = 'alice';\` | \`UPDATE on_call SET active = false WHERE doctor = 'bob';\` |
+| \`COMMIT;\` | \`COMMIT;\` |
+
+Under this concurrent schedule, the two independent row updates **can both commit** at PostgreSQL Repeatable Read, producing zero active doctors despite the original invariant.
+
+Repeat the controlled experiment with **SERIALIZABLE** isolation in both sessions. PostgreSQL's Serializable Snapshot Isolation is designed to detect the dangerous dependency pattern and abort at least one transaction, which may surface as SQLSTATE \`40001\`. The application must retry the **complete** transaction, including the decision made from its reads. A retry after the first commit should see only one remaining active doctor and must not deactivate that last doctor.
+
+**This is not guaranteed merely by writing the word SERIALIZABLE.** The application must actually run the invariant check and update together inside the transaction, handle aborts, and avoid external side effects escaping the retry boundary.
+
+### Runnable abstract schedule
+
+This deliberately simplified JavaScript model shows two decisions made from the *same snapshot*. It illustrates the invariant violation; it **does not simulate PostgreSQL MVCC or Serializable Snapshot Isolation**.
+
+~~~js
+function evaluateOnCallSchedule({ abortSecond }) {
+  const snapshot = { alice: true, bob: true };
+  const firstRead = Object.values(snapshot).filter(Boolean).length;
+  const secondRead = Object.values(snapshot).filter(Boolean).length;
+  if (firstRead !== 2 || secondRead !== 2) throw new Error("unexpected input");
+
+  const final = { ...snapshot, alice: false };
+  if (!abortSecond) final.bob = false;
+
+  return Object.values(final).filter(Boolean).length;
+}
+
+if (evaluateOnCallSchedule({ abortSecond: false }) !== 0) {
+  throw new Error("expected write-skew counterexample");
+}
+if (evaluateOnCallSchedule({ abortSecond: true }) !== 1) {
+  throw new Error("expected one remaining doctor after abort");
+}
+~~~
+
+The \`abortSecond\` switch is an **assumption supplied by the model**, not an implementation of conflict detection. A real PostgreSQL test must use two connections with controlled interleaving and verify transaction outcomes.
+
+## Failure modes
+
+- **Treating Repeatable Read as Serializable:** stable snapshots can still permit multi-row invariant violations.
+- **Assuming every database has PostgreSQL semantics:** products implement and name isolation levels differently.
+- **Retrying one SQL statement only:** SQLSTATE \`40001\` requires replaying the complete transaction logic, including reads that influenced decisions.
+- **Non-idempotent external side effects:** an email, payment or webhook emitted before a transaction commits cannot be rolled back by the database.
+- **Long-running transactions:** keeping snapshots and resources open can increase contention, retention pressure and operational cost.
+- **Ignoring constraints:** unique constraints and explicit locks can enforce particular invariants; isolation alone does not replace schema design.
+- **Assuming serializable means zero failures:** PostgreSQL may reject one transaction precisely to protect serializability.
+
+## Trade-offs
+
+Read Committed can suit short operations that tolerate changes between statements. Repeatable Read provides a stable snapshot for reporting and some update workflows but requires thought about invariants across rows. Serializable offers the strongest general isolation semantics and reduces the need for application-specific concurrency reasoning, but it may increase transaction aborts and requires careful bounded retries. Real performance depends on transaction length, access patterns, conflicts, indexing and engine behavior.
+
+## Related concepts
+
+**Atomicity** refers to all-or-nothing transaction outcomes; it does not alone establish an isolation guarantee. **MVCC** is a concurrency-control technique that supports snapshots. **Serializability** is the strongest semantic requirement here, not a synonym for transaction durability or linearizability. **Optimistic locking** typically detects conflicts using a version or predicate and can complement isolation where particular update rules require it. **Idempotency** matters when a failed attempt is retried, especially if operations extend beyond the database boundary. See [Idempotency](/distributed-systems/idempotency/) and [Atomic Operation](/concurrency-parallelism/atomic-operation/).
+
+## Testing and verification
+
+- Run the SQL schedule on **two actual PostgreSQL connections** and verify both commits and the invariant violation at Repeatable Read. Reset fixture state between trials.
+- Repeat at Serializable and assert a serialization failure can prevent the unsafe outcome; record SQLSTATE \`40001\`.
+- Retry from a **new transaction**, including a fresh predicate read; ensure it preserves the invariant.
+- Repeat the read-twice scenario under Read Committed and Repeatable Read to demonstrate statement versus transaction snapshots.
+- Execute the abstract JavaScript illustration separately, and clearly distinguish what it verifies from what only a database integration test can establish.
+- Do not claim coverage of other databases without engine-specific tests and documentation.
+
+## References
+
+- [PostgreSQL 18: Transaction Isolation](https://www.postgresql.org/docs/18/transaction-iso.html) — anomaly guarantees and PostgreSQL's isolation-level differences.
+- [PostgreSQL 18: MVCC Introduction](https://www.postgresql.org/docs/18/mvcc-intro.html) — versioned snapshots and visibility.
+- [PostgreSQL 18: Serialization Failure Handling](https://www.postgresql.org/docs/18/mvcc-serialization-failure-handling.html) — \`40001\` and whole-transaction retry.
+
+**Editorial status:** draft. Independent review and PostgreSQL two-connection integration evidence remain outstanding.
