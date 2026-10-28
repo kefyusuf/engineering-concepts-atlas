@@ -11,6 +11,8 @@ const articles = [
   ['/distributed-systems/idempotency/', 'Idempotency'],
   ['/type-systems/type-inference/', 'Type Inference'],
   ['/functional-programming/pure-function/', 'Pure Function'],
+  ['/oop-design-patterns/observer-pattern/', 'Observer Pattern'],
+  ['/operating-systems-memory/virtual-memory/', 'Virtual Memory'],
 ];
 function fixture(run, breakSearch = false) {
   const root = mkdtempSync(join(tmpdir(), 'atlas-browser-fixture-'));
@@ -18,7 +20,7 @@ function fixture(run, breakSearch = false) {
   const html = (title, isPilot) => `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>${title}</title></head><body><main><h1>${title}</h1><a href="/concept-index/">Concept index</a>${isPilot ? '<aside>Editorial preview — not approved for publication</aside><pre><code>example();</code></pre><h2>References</h2><a href="https://example.org/source">Primary source</a>' : ''}</main></body></html>`;
   for (const [route, title] of [['/', 'Engineering Concepts Atlas'], ['/concept-index/', 'Concept index'], ['/about/', 'About'], ...articles]) put(`${route.slice(1)}index.html`, html(title, articles.some(item => item[0] === route)));
   put('pagefind/pagefind.js', `export async function search(query) {
-    const mapping = ${JSON.stringify(Object.fromEntries([['idiomatic', articles[0][0]], ['atomic operation', articles[1][0]], ['idempotency', articles[2][0]], ['type inference', articles[3][0]], ['pure function', articles[4][0]]]))};
+    const mapping = ${JSON.stringify(Object.fromEntries([['idiomatic', articles[0][0]], ['atomic operation', articles[1][0]], ['idempotency', articles[2][0]], ['type inference', articles[3][0]], ['pure function', articles[4][0]], ['observer pattern', articles[5][0]], ['virtual memory', articles[6][0]]]))};
     return {results: ${breakSearch ? '[]' : '[{data: async () => ({url: mapping[query] ?? "/not-found/"})}]'}};
   }`);
   return Promise.resolve().then(() => run(root)).finally(() => rmSync(root, { recursive: true, force: true }));
@@ -26,9 +28,9 @@ function fixture(run, breakSearch = false) {
 
 test('headless browser follows authored routes and queries Pagefind runtime', { skip: !findBrowser() }, async () => {
   const output = await fixture(root => runBrowserAudit(root, { basePath: '' }));
-  assert.equal(output.pagesChecked, 8);
-  assert.equal(output.pilotPagesChecked, 5);
-  assert.equal(output.searchesChecked, 5);
+  assert.equal(output.pagesChecked, 10);
+  assert.equal(output.pilotPagesChecked, 7);
+  assert.equal(output.searchesChecked, 7);
   assert.equal(output.mobileWidth, 375);
 });
 

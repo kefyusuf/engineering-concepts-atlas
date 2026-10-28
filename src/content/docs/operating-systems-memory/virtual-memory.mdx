@@ -106,7 +106,7 @@ if (first !== 23 * pageSize + 37) throw new Error("translation error");
 
 The translation preserves the page offset. It *omits* MMU hardware, TLB invalidation, permissions, page-table traversal, valid-but-nonresident faults, sharing and kernel allocation. Do not infer real process addresses or memory residency from this arithmetic exercise.
 
-For observation on Linux, **/proc/<pid>/maps** describes virtual mappings (subject to process access permissions); mapping size alone is not identical to resident set size. Tools such as **mincore(2)** can provide a momentary page-residency snapshot, not a permanent guarantee.
+For observation on Linux, `/proc/<pid>/maps` describes virtual mappings (subject to process access permissions); mapping size alone is not identical to resident set size. Tools such as **mincore(2)** can provide a momentary page-residency snapshot, not a permanent guarantee.
 
 ## Failure modes
 
