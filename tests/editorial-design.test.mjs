@@ -4,58 +4,63 @@ import { readFileSync } from 'node:fs';
 
 const home = readFileSync(new URL('../src/content/docs/index.mdx', import.meta.url), 'utf8');
 const css = readFileSync(new URL('../src/styles/atlas.css', import.meta.url), 'utf8');
+const config = readFileSync(new URL('../astro.config.mjs', import.meta.url), 'utf8');
 
-test('homepage uses a curated editorial directory, not thirteen identical marketing cards', () => {
-  assert.match(home, /atlas-home/);
-  assert.match(home, /atlas-principles/);
-  assert.match(home, /atlas-directory/);
-  assert.match(home, /atlas-preview-notice/);
-  assert.match(home, /<h2>Explore the current articles<\/h2>/);
-  assert.match(home, /<h3>Language & design<\/h3>/);
-  assert.doesNotMatch(home, /<CardGrid|<Card /);
+const routes = [
+  'programming-language-concepts/idiomatic-programming/',
+  'concurrency-parallelism/atomic-operation/',
+  'distributed-systems/idempotency/',
+  'type-systems/type-inference/',
+  'functional-programming/pure-function/',
+  'oop-design-patterns/observer-pattern/',
+  'operating-systems-memory/virtual-memory/',
+  'io-networking/input-output/',
+  'databases-transactions/transaction-isolation-levels/',
+  'compilers-runtimes/abstract-syntax-tree/',
+  'http-api-integration/http-method-semantics/',
+  'data-structures-algorithms/bloom-filter/',
+  'testing-verification/mutation-testing/',
+];
+
+test('home has one compact custom masthead and purposeful first-screen reading paths', () => {
+  assert.match(home, /template: splash/);
+  assert.doesNotMatch(home, /\nhero:/);
+  assert.match(home, /class="atlas-masthead"/);
+  assert.match(home, /class="atlas-quickstart"/);
+  assert.match(home, /<h1>/);
+  assert.match(home, /class="atlas-directory"/);
+  assert.doesNotMatch(home, /atlas-principles|atlas-intro/);
 });
 
-test('homepage retains every current editorial draft destination', () => {
-  const routes = [
-    '/programming-language-concepts/idiomatic-programming/',
-    '/concurrency-parallelism/atomic-operation/',
-    '/distributed-systems/idempotency/',
-    '/type-systems/type-inference/',
-    '/functional-programming/pure-function/',
-    '/oop-design-patterns/observer-pattern/',
-    '/operating-systems-memory/virtual-memory/',
-    '/io-networking/input-output/',
-    '/databases-transactions/transaction-isolation-levels/',
-    '/compilers-runtimes/abstract-syntax-tree/',
-    '/http-api-integration/http-method-semantics/',
-    '/data-structures-algorithms/bloom-filter/',
-    '/testing-verification/mutation-testing/',
-  ];
-  for (const route of routes) assert.ok(home.includes('href="./' + route.slice(1) + '"'), 'missing homepage-relative editorial draft link ' + route);
-  assert.equal((home.match(/<li><a href="\.\//g) ?? []).length, 13);
-  assert.match(home, /thirteen|13/i);
-  assert.match(home, /not independently reviewed/i);
+test('all thirteen editorial preview articles remain discoverable on homepage', () => {
+  for(const route of routes) assert.ok(home.includes('href="./' + route + '"'), route);
+  assert.match(home, /13 draft articles/i);
+  assert.match(home, /20 categories/i);
+  assert.match(home, /100 planned concepts/i);
 });
 
-test('site CSS has coherent light/dark tokens and responsive reading layouts', () => {
-  for (const token of ['--atlas-surface', '--atlas-line', '--atlas-ink', '--atlas-muted']) {
-    assert.ok(css.includes(token), 'missing token ' + token);
-  }
-  assert.match(css, /:root\[data-theme=['"]light['"]\]/);
-  assert.match(css, /\.atlas-directory/);
-  assert.match(css, /@media\s*\(max-width:\s*48rem\)/);
-  assert.match(css, /prefers-reduced-motion/);
-});
-
-test('site retains accessible focus and does not fetch external fonts or introduce animation dependencies', () => {
-  assert.match(css, /:focus-visible/);
-  assert.match(css, /--sl-font/);
-  assert.doesNotMatch(css, /@import\s+url\s*\(/);
-  assert.doesNotMatch(home, /<script|<iframe|<video/i);
-});
-
-test('redesign leaves content and approval status separated', () => {
+test('editorial previews stay explicitly labelled and production status is not claimed', () => {
   assert.match(home, /editorial preview/i);
   assert.match(home, /not approved/i);
-  assert.match(home, /20 categories/);
+  assert.match(home, /not independently reviewed/i);
+  assert.match(config, /noindex, nofollow/);
+});
+
+test('reading design has responsive content, code, callout and accessible focus styles', () => {
+  for(const token of ['--atlas-surface','--atlas-ink','--atlas-muted','--atlas-line']) assert.ok(css.includes(token), token);
+  assert.match(css, /\.atlas-masthead/);
+  assert.match(css, /\.atlas-quickstart/);
+  assert.match(css, /\.atlas-directory/);
+  assert.match(css, /\.sl-markdown-content/);
+  assert.match(css, /\.starlight-aside/);
+  assert.match(css, /:focus-visible/);
+  assert.match(css, /@media\s*\(max-width:\s*48rem\)/);
+  assert.match(css, /prefers-reduced-motion/);
+  assert.match(css, /:root\[data-theme='light'\]/);
+});
+
+test('site has no added scripts, font imports, autoplay media or visual dependency', () => {
+  assert.doesNotMatch(css, /@import\s+url\s*\(/);
+  assert.doesNotMatch(home, /<script|<iframe|<video/i);
+  assert.doesNotMatch(home, /<CardGrid|<Card /);
 });
