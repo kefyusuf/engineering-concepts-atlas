@@ -1,0 +1,151 @@
+---
+{
+  "title": "Bounded Context",
+  "description": "Domain-driven model boundaries, ubiquitous language, context mapping and explicit translation contracts.",
+  "contentType": "concept",
+  "conceptId": "architecture.bounded-context",
+  "category": "software-architecture",
+  "kind": "concept",
+  "aliases": [
+    "DDD Bounded Context",
+    "Domain Model Boundary"
+  ],
+  "related": [
+    {
+      "conceptId": "architecture.modular-monolith",
+      "relation": "related_to"
+    },
+    {
+      "conceptId": "architecture.coupling",
+      "relation": "related_to"
+    },
+    {
+      "conceptId": "architecture.hexagonal-architecture",
+      "relation": "related_to"
+    }
+  ],
+  "editorialStatus": "draft",
+  "sources": [
+    {
+      "title": "Martin Fowler — Bounded Context",
+      "url": "https://martinfowler.com/bliki/BoundedContext.html",
+      "role": "primary",
+      "scope": "DDD model boundaries and context maps"
+    },
+    {
+      "title": "Microsoft Learn — Domain Analysis",
+      "url": "https://learn.microsoft.com/en-us/azure/architecture/microservices/model/domain-analysis",
+      "role": "primary",
+      "scope": "Domain modeling, bounded context discovery and microservice design distinctions"
+    },
+    {
+      "title": "Martin Fowler — Domain-Driven Design",
+      "url": "https://martinfowler.com/bliki/DomainDrivenDesign.html",
+      "role": "secondary",
+      "scope": "Ubiquitous language and domain-driven modeling"
+    }
+  ]
+}
+---
+
+:::caution[Editorial preview — not approved for publication]
+This M1.3 article remains an unreviewed working draft. The runnable mapping demonstrates a contract boundary, not a validated business decomposition.
+:::
+
+## Precise definition
+
+A **Bounded Context** is an explicit boundary within which a domain model and its ubiquitous language have a coherent meaning. Outside that boundary, apparently identical terms can represent different concepts and require intentional translation. It is a strategic Domain-Driven Design (DDD) pattern, **not** a synonym for microservice, repository, database schema or deployment unit.
+
+For example, **Customer** may denote a billing account with invoices in Billing, but a person with preferences and support cases in Customer Support. Each model is consistent within its own context. Neither must adopt the other model as a universal enterprise object.
+
+## Why it exists
+
+Complex businesses often contain multiple interpretations of the same concepts. Forcing one global model to satisfy all groups produces leaky abstractions, accidental coupling and endless additions to shared entities. A bounded context protects local language and invariants while making relationships to other models explicit.
+
+Finding the boundary requires observing business workflows, ownership, terminology, consistency needs and domain experts. Naming services after nouns does not discover the boundary automatically.
+
+## Mental model
+
+Imagine two professional dictionaries. Both contain a word such as **account**, but the accounting and identity teams use it differently. Each team needs a locally consistent definition, and collaboration needs a translation agreement. Unlike independent dictionaries, real contexts can exchange data and rely on each other's actions, so their contracts, failures and change coordination still matter.
+
+## Mechanics and guarantees
+
+1. **Model boundaries:** identify where language, rules and conceptual ownership change.
+2. **Ubiquitous language:** agree on domain words with the experts responsible for that part of the business.
+3. **Integration contracts:** define externally visible messages or APIs deliberately; do not export arbitrary internal objects as permanent public schemas.
+4. **Translation:** an adapter or anti-corruption layer can convert a producer's concepts into a consumer's terms.
+5. **Context maps:** record upstream/downstream relationships and coordination patterns such as Customer–Supplier, Conformist or Shared Kernel. These express different dependencies, not a single default architecture.
+6. **Local invariants:** define which business rules can be enforced inside one model and which require cross-context coordination.
+7. **Deployment freedom:** one bounded context can live in a module of a modular monolith. Distributed deployment introduces additional latency, failure and consistency concerns; DDD does not require it.
+
+**Guarantee boundary:** a context boundary is an architectural model decision. It does not automatically guarantee authorization, privacy, schema compatibility, transactional isolation or delivery reliability.
+
+## Worked example
+
+This executable **JavaScript / Node.js** example translates an explicitly exported Sales order into a Shipping model. It uses hypothetical business statuses. Unknown statuses fail closed rather than silently being classified as ready to ship.
+
+~~~js
+function salesToShipping(order) {
+  if (order === null || typeof order !== "object") {
+    throw new TypeError("invalid Sales order");
+  }
+  const statusMap = { confirmed: "ready_to_pack", hold: "blocked" };
+  if (!Object.hasOwn(statusMap, order.status)) {
+    throw new RangeError("unknown Sales status");
+  }
+  if (typeof order.orderId !== "string" || order.orderId.length === 0) {
+    throw new TypeError("missing Sales order id");
+  }
+  return {
+    shipmentReference: "sales:" + order.orderId,
+    fulfillmentState: statusMap[order.status],
+  };
+}
+
+const sales = Object.freeze({ orderId: "A-42", status: "confirmed" });
+const shipment = salesToShipping(sales);
+if (shipment.shipmentReference !== "sales:A-42") {
+  throw new Error("boundary translation failed");
+}
+if (shipment.fulfillmentState !== "ready_to_pack") {
+  throw new Error("wrong fulfillment state");
+}
+if (sales.status !== "confirmed") throw new Error("source mutated");
+~~~
+
+The Shipping consumer owns the terms **shipmentReference** and **fulfillmentState**. Mapping is an explicit policy, not a universal rule that every confirmed sale is shippable. Real systems may need separate payment, fraud and inventory constraints; those are intentionally absent from this teaching fixture.
+
+## Failure modes
+
+- **Treating service boundaries as context boundaries:** deploying every database table separately can create chatty services while preserving one tangled model.
+- **Shared DTO leakage:** exporting an internal entity everywhere couples consumers to implementation details.
+- **Unrecognized status mapping:** assuming any unfamiliar producer state means success causes unsafe downstream decisions.
+- **Cross-context atomicity assumptions:** a business invariant spanning two systems does not become transactional merely because both use DDD.
+- **Too many contexts:** excessive splitting introduces contract, mapping and coordination cost without improving model coherence.
+- **Overly large context:** a model accumulates incompatible terms and loses a consistent ubiquitous language.
+- **Boundary drift:** names and rules change over time; contracts need versioned review.
+
+## Trade-offs
+
+Clear bounded contexts improve model ownership, reasoning and independent change. They may duplicate representations, require translation code and introduce operational coordination. A modular monolith with well-defined model boundaries can be simpler than immediately deploying microservices. The correct split comes from domain complexity and change patterns rather than a preferred infrastructure stack.
+
+## Related concepts
+
+**Modular Monolith** is one implementation topology for independent modules; modules can align with bounded contexts but do not automatically do so. **Hexagonal Architecture** organizes ports and adapters inside an application boundary and can host translation logic. **Coupling** describes dependencies a context map should make visible. **CQRS** separates write and read models but does not imply two bounded contexts. **Microservice** denotes a deployable service and is not the definition of the domain boundary.
+
+## Testing and verification
+
+- Execute the mapping example and verify both translated fields and the source object's immutability.
+- Map a Sales status of **hold** and require Shipping's **blocked** state.
+- Supply an unfamiliar status and require an error, not a default permissive state.
+- Assert that the translated result does not leak the source field names.
+- For actual services, test schema compatibility, unknown enum values, retries and eventual delivery separately.
+- Hold domain workshops and inspect real change coupling to validate whether the language boundary is useful. Unit tests cannot prove a domain decomposition is correct.
+
+## References
+
+- [Martin Fowler — Bounded Context](https://martinfowler.com/bliki/BoundedContext.html) — boundaries and context mapping.
+- [Microsoft Learn — Domain Analysis](https://learn.microsoft.com/en-us/azure/architecture/microservices/model/domain-analysis) — identifying context boundaries from requirements.
+- [Martin Fowler — Domain-Driven Design](https://martinfowler.com/bliki/DomainDrivenDesign.html) — foundational domain modeling.
+
+**Editorial status:** draft. Independent review and domain validation remain outstanding.
