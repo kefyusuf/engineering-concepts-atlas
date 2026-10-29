@@ -6,7 +6,7 @@ contentType: category
 This category belongs to **Quality & Operations**. It provides a navigational overview of five selected foundational and advanced terms.
 ## Catalog candidates
 > **Editorial status:** Catalog entries below are planned concepts, not independently reviewed articles. Pilot pages are clearly marked as drafts.
-- **Software Bill of Materials (SBOM)** — Planned; no article available yet.
+- [**Software Bill of Materials (SBOM)**](/devops-ci-cd/sbom/) — Editorial draft preview; independent review pending.
 - **Continuous Integration** — Planned; no article available yet.
 - **Immutable Infrastructure** — Planned; no article available yet.
 - **Build Provenance** — Planned; no article available yet.

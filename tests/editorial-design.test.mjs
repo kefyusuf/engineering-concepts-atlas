@@ -22,6 +22,8 @@ const routes = [
   'testing-verification/mutation-testing/',
   'software-architecture/bounded-context/',
   'performance-engineering/tail-latency/',
+  'devops-ci-cd/sbom/',
+  'observability-sre/observability/',
 ];
 
 test('home has one compact custom masthead and purposeful first-screen reading paths', () => {
@@ -34,9 +36,9 @@ test('home has one compact custom masthead and purposeful first-screen reading p
   assert.doesNotMatch(home, /atlas-principles|atlas-intro/);
 });
 
-test('all fifteen editorial preview articles remain discoverable on homepage', () => {
+test('all seventeen editorial preview articles remain discoverable on homepage', () => {
   for(const route of routes) assert.ok(home.includes('href="./' + route + '"'), route);
-  assert.match(home, /15 draft articles/i);
+  assert.match(home, /17 draft articles/i);
   assert.match(home, /20 categories/i);
   assert.match(home, /100 planned concepts/i);
 });

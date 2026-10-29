@@ -18,6 +18,8 @@ export const REQUIRED_ROUTES = [
   '/testing-verification/mutation-testing/',
   '/software-architecture/bounded-context/',
   '/performance-engineering/tail-latency/',
+  '/devops-ci-cd/sbom/',
+  '/observability-sre/observability/',
   '/functional-programming/pure-function/',
 ];
 

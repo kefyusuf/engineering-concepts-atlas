@@ -3,7 +3,7 @@ title: Concept index A–Z
 description: Index of published and planned engineering concepts, clearly separated by editorial status.
 ---
 
-The initial catalog contains 100 concept candidates. **Fifteen editorial drafts are available in the public preview.** They are not approved technical references. Other names below are planned subjects, not verified documentation.
+The initial catalog contains 100 concept candidates. **Seventeen editorial drafts are available in the public preview.** They are not approved technical references. Other names below are planned subjects, not verified documentation.
 
 ## Preview articles
 
@@ -22,6 +22,8 @@ The initial catalog contains 100 concept candidates. **Fifteen editorial drafts 
 - [Mutation Testing](/testing-verification/mutation-testing/) — killed/survived mutants and test sensitivity.
 - [Bounded Context](/software-architecture/bounded-context/) — model boundaries, language and translation.
 - [Tail Latency](/performance-engineering/tail-latency/) — percentiles and slow-request measurement.
+- [Software Bill of Materials (SBOM)](/devops-ci-cd/sbom/) — release inventory and dependency coverage.
+- [Observability](/observability-sre/observability/) — trace, metric and log correlations.
 
 ## All categories
 
