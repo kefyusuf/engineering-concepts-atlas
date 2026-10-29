@@ -2,7 +2,7 @@
 
 ## Scope
 Exactly two existing M0 M1 seed concepts:
-- devops.sbom — devops-ci-cd/software-bill-of-materials
+- devops.sbom — devops-ci-cd/sbom
 - sre.observability — observability-sre/observability
 
 100 catalog candidates, 20 categories, six groups, 18 relationships and the 20-approved-article production release gate remain unchanged.

@@ -4,7 +4,7 @@ import { readFileSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
-const sbom = readFileSync(new URL('../src/content/docs/devops-ci-cd/software-bill-of-materials.mdx', import.meta.url), 'utf8');
+const sbom = readFileSync(new URL('../src/content/docs/devops-ci-cd/sbom.mdx', import.meta.url), 'utf8');
 const observability = readFileSync(new URL('../src/content/docs/observability-sre/observability.mdx', import.meta.url), 'utf8');
 
 function snippet(doc) {

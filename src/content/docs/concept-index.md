@@ -22,7 +22,7 @@ The initial catalog contains 100 concept candidates. **Seventeen editorial draft
 - [Mutation Testing](/testing-verification/mutation-testing/) — killed/survived mutants and test sensitivity.
 - [Bounded Context](/software-architecture/bounded-context/) — model boundaries, language and translation.
 - [Tail Latency](/performance-engineering/tail-latency/) — percentiles and slow-request measurement.
-- [Software Bill of Materials (SBOM)](/devops-ci-cd/software-bill-of-materials/) — release inventory and dependency coverage.
+- [Software Bill of Materials (SBOM)](/devops-ci-cd/sbom/) — release inventory and dependency coverage.
 - [Observability](/observability-sre/observability/) — trace, metric and log correlations.
 
 ## All categories

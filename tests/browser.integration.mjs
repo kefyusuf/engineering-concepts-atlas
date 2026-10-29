@@ -21,7 +21,7 @@ const articles = [
   ['/testing-verification/mutation-testing/', 'Mutation Testing'],
   ['/software-architecture/bounded-context/', 'Bounded Context'],
   ['/performance-engineering/tail-latency/', 'Tail Latency'],
-  ['/devops-ci-cd/software-bill-of-materials/', 'Software Bill of Materials (SBOM)'],
+  ['/devops-ci-cd/sbom/', 'Software Bill of Materials (SBOM)'],
   ['/observability-sre/observability/', 'Observability'],
 ];
 function fixture(run, breakSearch = false) {
