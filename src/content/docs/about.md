@@ -15,4 +15,4 @@ Engineering Concepts Atlas is a language-agnostic engineering reference. The ini
 
 ## Current release state
 
-This is an implementation preview. Thirteen concept pages are drafts pending independent sign-off. A separate `build:release` command intentionally blocks production publication until twenty articles, one per category, are reviewed and approved.
+This is an implementation preview. Fifteen concept pages are drafts pending independent sign-off. A separate `build:release` command intentionally blocks production publication until twenty articles, one per category, are reviewed and approved.

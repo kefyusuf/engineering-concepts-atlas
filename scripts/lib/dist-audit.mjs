@@ -16,6 +16,8 @@ export const REQUIRED_ROUTES = [
   '/http-api-integration/http-method-semantics/',
   '/data-structures-algorithms/bloom-filter/',
   '/testing-verification/mutation-testing/',
+  '/software-architecture/bounded-context/',
+  '/performance-engineering/tail-latency/',
   '/functional-programming/pure-function/',
 ];
 
