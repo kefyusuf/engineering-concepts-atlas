@@ -1,0 +1,165 @@
+---
+{
+  "title": "Software Bill of Materials (SBOM)",
+  "description": "Versioned component inventories, dependency relationships, coverage gaps and limits of software supply-chain evidence.",
+  "contentType": "concept",
+  "conceptId": "devops.sbom",
+  "category": "devops-ci-cd",
+  "kind": "concept",
+  "aliases": [
+    "SBOM",
+    "Software Component Inventory"
+  ],
+  "related": [
+    {
+      "conceptId": "devops.build-provenance",
+      "relation": "related_to"
+    },
+    {
+      "conceptId": "security.attack-surface",
+      "relation": "related_to"
+    },
+    {
+      "conceptId": "devops.continuous-integration",
+      "relation": "related_to"
+    }
+  ],
+  "editorialStatus": "draft",
+  "sources": [
+    {
+      "title": "SPDX — Specifications",
+      "url": "https://spdx.dev/use/specifications/",
+      "role": "primary",
+      "scope": "Published SPDX document family and current stable model overview"
+    },
+    {
+      "title": "CycloneDX — Specification Overview",
+      "url": "https://cyclonedx.org/specification/overview/",
+      "role": "primary",
+      "scope": "CycloneDX 1.7 BOM metadata, components, dependencies and inventory schema"
+    },
+    {
+      "title": "CISA — Minimum Elements for a Software Bill of Materials (2025)",
+      "url": "https://www.cisa.gov/sites/default/files/2025-08/2025_CISA_SBOM_Minimum_Elements.pdf",
+      "role": "primary",
+      "scope": "Coverage, known unknowns, version/build frequency, transitive components and updates"
+    }
+  ]
+}
+---
+
+:::caution[Editorial preview — not approved for publication]
+This M1.3 working draft uses a deliberately simplified component graph. The example does **not** generate, certify or validate an SPDX or CycloneDX document.
+:::
+
+## Precise definition
+
+A **Software Bill of Materials (SBOM)** is a machine-readable inventory describing the software components and relationships that make up a particular software product or artifact. A useful SBOM identifies *what was included*, *which version or build it describes*, and *how components depend on or contain other components*. It can support vulnerability-response triage, license review, procurement and supply-chain transparency.
+
+An SBOM is an **inventory claim**, not proof that a deployed binary contains no vulnerabilities, that its build environment is trusted, or that each declared component matches its source. Coverage, accuracy, origin and freshness must be evaluated separately.
+
+## Why it exists
+
+Applications combine direct dependencies, transitive packages, bundled libraries and sometimes operating-system components. When a vulnerability or licensing concern emerges, teams need to identify affected releases without manually reconstructing every dependency chain. An SBOM can establish which components were declared at release time and help answer whether a potentially affected version is in scope.
+
+However, an inventory produced from a development manifest can miss vendored code, optional packages and transformations occurring during the build. It must state its generation point, target artifact and known gaps.
+
+## Mental model
+
+Consider a product's bill of materials: the assembly has subassemblies and parts, each with a specific identity. A software inventory is similar, except the same library can appear in multiple versions, the build output may differ from source declarations, and unknown or intentionally withheld components need explicit treatment. Counting packages is not equivalent to measuring security exposure.
+
+## Mechanics and guarantees
+
+1. **Define the subject.** Identify the product or artifact and release it describes. A source tree, container image and deployed binary can have different inventories.
+2. **Identify components.** Use appropriate package identity, supplier where available, version and identifiers; distinguish unknown values from genuinely absent components.
+3. **Record relationships.** Direct and transitive dependency edges help consumers understand inclusion. A flat list cannot always explain reachability or dependency paths.
+4. **Describe origin and timing.** Identify the creating tool or organization, generation time and product version/build so consumers can compare the inventory with the actual artifact.
+5. **Represent gaps.** Declare known unknowns and redactions. CISA's 2025 minimum-elements guidance calls for completeness and explicit treatment of missing relationship information rather than silent omission.
+6. **Choose an interchange format.** SPDX and CycloneDX are structured standard families. Each version has its own schema and semantics: never call a hand-written JSON object a valid SBOM solely because it contains a **components** array.
+7. **Refresh per meaningful release.** An inventory for yesterday's build does not prove the composition of today's rebuild. Updating data about components may also require a corrected document.
+8. **Correlate external evidence.** Known-vulnerability matches need version-range analysis, affected-product details, exploitability context and sometimes runtime evidence. Inventory presence alone does not prove exploitability.
+
+**Standards boundary:** SPDX's published specifications identify version 3.0 as the stable major family, while its web resources also expose 3.0.1 materials. CycloneDX's specification overview identifies **1.7** as the current published version. Announced future versions or proposals must not be treated as final interchange schemas. Generating an actual standards-conformant BOM would require a version-specific schema and tooling, not the educational sample below.
+
+## Worked example
+
+This **Node.js JavaScript** teaching fixture models the reachability of component identities in a declared dependency graph. It enforces unique IDs, version metadata, resolvable dependencies and reachable component coverage. It is **not** an SPDX/CycloneDX schema implementation, vulnerability scanner or binary analyzer.
+
+~~~js
+function inspectInventory(inventory) {
+  const { root, components } = inventory;
+  if (!Array.isArray(components)) throw new TypeError("components required");
+  const byId = new Map();
+  for (const component of components) {
+    if (typeof component.id !== "string" || !component.id ||
+        typeof component.version !== "string" || !component.version ||
+        !Array.isArray(component.dependsOn)) {
+      throw new TypeError("invalid component metadata");
+    }
+    if (byId.has(component.id)) throw new Error("duplicate component identity");
+    byId.set(component.id, component);
+  }
+  const visited = new Set();
+  function visit(id) {
+    if (!byId.has(id)) throw new Error("missing component: " + id);
+    if (visited.has(id)) return;
+    visited.add(id);
+    for (const child of byId.get(id).dependsOn) visit(child);
+  }
+  visit(root);
+  const unreachable = components.filter((item) => !visited.has(item.id))
+    .map((item) => item.id);
+  return { reachable: visited.size, unreachable };
+}
+
+const inventory = {
+  root: "app",
+  components: [
+    { id: "app", version: "1.0.0", dependsOn: ["framework"] },
+    { id: "framework", version: "2.3.0", dependsOn: ["utility"] },
+    { id: "utility", version: "4.1.0", dependsOn: [] },
+  ],
+};
+const result = inspectInventory(inventory);
+if (result.reachable !== 3 || result.unreachable.length !== 0) {
+  throw new Error("component graph incomplete");
+}
+~~~
+
+The fixture walks a *declared* graph, not installed packages. A successful traversal only shows that references within these input objects are internally consistent. A hidden runtime dependency cannot be discovered by this function, and an intentionally incomplete graph can still pass if omitted components are never referenced.
+
+## Failure modes
+
+- **Manifest-versus-artifact confusion:** source dependencies can differ from shipped container or bundle contents.
+- **Missing transitive dependencies:** direct dependencies alone cannot describe a complete graph.
+- **Stale BOM reuse:** a rebuild may resolve new dependency versions or add packages.
+- **Unverifiable identities:** ambiguous names without enough origin/version detail make matches unreliable.
+- **Treating absence as proof:** a component absent from an incomplete SBOM cannot be ruled out of an artifact.
+- **Confusing SBOM with provenance or attestation:** an inventory does not establish who built the artifact or whether CI controls passed.
+- **Assuming vulnerability equals exploitability:** a version match requires additional triage for applicability and reachability.
+- **Unnecessary public exposure:** a BOM may reveal product composition; distribution policy and access controls must be considered.
+
+## Trade-offs
+
+Build-time SBOM generation can improve fidelity to the released artifact, while source-time inventory can be faster and easier to produce. Rich metadata and dependency edges improve analysis but raise generation, review and update costs. Producing multiple formats improves interoperability but requires faithful mapping of identifiers and relationships. The priority is an accurate, version-scoped inventory with known limitations, not the maximum number of fields.
+
+## Related concepts
+
+**Build Provenance** describes how an artifact was produced, whereas an SBOM describes its declared composition; the records complement each other. **Attack Surface** is the set of exposure paths and reachable interfaces, not simply the number of packages in the BOM. **Continuous Integration** can generate and validate SBOM documents at build time but does not guarantee completeness without artifact-oriented checks. An SBOM also does not substitute for signature verification or ongoing vulnerability management.
+
+## Testing and verification
+
+- Run the example and verify that three declared components are reachable from the root.
+- Remove the transitive **utility** entry while keeping the reference and require a missing-component error.
+- Introduce duplicate IDs or empty versions and require rejection.
+- Add an unreferenced component and confirm it is reported as unreachable rather than silently included in the dependency path.
+- For real SBOMs, validate the declared SPDX/CycloneDX schema version using an appropriate independent validator.
+- Reconcile build outputs, manifests, installed dependencies and known unknowns; report coverage instead of inventing a completeness guarantee.
+
+## References
+
+- [SPDX — Specifications](https://spdx.dev/use/specifications/) — published SPDX formats and version family.
+- [CycloneDX — Specification Overview](https://cyclonedx.org/specification/overview/) — BOM metadata and component relationships.
+- [CISA — 2025 SBOM Minimum Elements](https://www.cisa.gov/sites/default/files/2025-08/2025_CISA_SBOM_Minimum_Elements.pdf) — transitive coverage, freshness and explicitly known unknowns.
+
+**Editorial status:** draft. An independently validated release SBOM is not produced by this article.
