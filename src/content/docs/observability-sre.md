@@ -6,7 +6,7 @@ contentType: category
 This category belongs to **Quality & Operations**. It provides a navigational overview of five selected foundational and advanced terms.
 ## Catalog candidates
 > **Editorial status:** Catalog entries below are planned concepts, not independently reviewed articles. Pilot pages are clearly marked as drafts.
-- **Observability** — Planned; no article available yet.
+- [**Observability**](/observability-sre/observability/) — Editorial draft preview; independent review pending.
 - **Distributed Tracing** — Planned; no article available yet.
 - **Service Level Objective (SLO)** — Planned; no article available yet.
 - **Error Budget** — Planned; no article available yet.

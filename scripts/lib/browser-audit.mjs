@@ -22,6 +22,8 @@ const DEFAULT_ROUTES = [
   '/testing-verification/mutation-testing/',
   '/software-architecture/bounded-context/',
   '/performance-engineering/tail-latency/',
+  '/devops-ci-cd/software-bill-of-materials/',
+  '/observability-sre/observability/',
 ];
 const SEARCHES = [
   ['idiomatic', '/programming-language-concepts/idiomatic-programming/'],
@@ -39,6 +41,8 @@ const SEARCHES = [
   ['mutation testing', '/testing-verification/mutation-testing/'],
   ['bounded context', '/software-architecture/bounded-context/'],
   ['tail latency', '/performance-engineering/tail-latency/'],
+  ['software bill of materials', '/devops-ci-cd/software-bill-of-materials/'],
+  ['observability', '/observability-sre/observability/'],
 ];
 const PILOT_TITLES = new Map([
   ['/programming-language-concepts/idiomatic-programming/', 'Idiomatic Programming'],
@@ -56,6 +60,8 @@ const PILOT_TITLES = new Map([
   ['/testing-verification/mutation-testing/', 'Mutation Testing'],
   ['/software-architecture/bounded-context/', 'Bounded Context'],
   ['/performance-engineering/tail-latency/', 'Tail Latency'],
+  ['/devops-ci-cd/software-bill-of-materials/', 'Software Bill of Materials (SBOM)'],
+  ['/observability-sre/observability/', 'Observability'],
 ]);
 const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 

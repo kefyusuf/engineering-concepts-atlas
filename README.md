@@ -1,6 +1,6 @@
 # Engineering Concepts Atlas
 
-**Current milestone:** M1.3 — advanced content, batch 6 (editorial preview).
+**Current milestone:** M1.3 — advanced content, batch 7 (editorial preview).
 **Content language:** English.
 **Publication:** GitHub Pages is an unreviewed preview, not a production knowledge reference.
 
@@ -32,8 +32,8 @@ The repository does not yet contain an npm lockfile. CI therefore uses npm insta
 ## Knowledge coverage
 
 - 100 planned candidates in 20 categories and six navigation groups.
-- Fifteen **draft** concept articles: Idiomatic Programming, Atomic Operation, Idempotency, Type Inference, Pure Function, Observer Pattern, Virtual Memory, Input/Output (I/O), Transaction Isolation Levels, Abstract Syntax Tree (AST), HTTP Method Semantics, Bloom Filter, Mutation Testing, Bounded Context, and Tail Latency.
-- Remaining 85 candidates are plans, not articles.
+- Seventeen **draft** concept articles: Idiomatic Programming, Atomic Operation, Idempotency, Type Inference, Pure Function, Observer Pattern, Virtual Memory, Input/Output (I/O), Transaction Isolation Levels, Abstract Syntax Tree (AST), HTTP Method Semantics, Bloom Filter, Mutation Testing, Bounded Context, Tail Latency, Software Bill of Materials (SBOM), and Observability.
+- Remaining 83 candidates are plans, not articles.
 - The M0 catalog and relationships are authoritative and are not modified by this batch.
 
 Every article must cover definition, motivation, mental model, mechanics, example, failure modes, trade-offs, comparisons, verification and scope-matched references.
@@ -42,7 +42,7 @@ Every article must cover definition, motivation, mental model, mechanics, exampl
 
 **Do not claim production publication based on preview deployment.** Production build:release requires 20 independently reviewed M1 seed articles, one per category. A draft has no reviewedAt date.
 
-Pull requests run tests, content/schema validation, Astro build, Pagefind and Chromium checks. Only a successful merge to main may deploy the static preview. Refer to docs/17-m1-3-batch-1.md and docs/18-m1-3-batch-2.md and docs/19-m1-3-batch-3.md and docs/20-m1-3-batch-4.md and docs/21-m1-3-batch-5.md and docs/22-m1-3-batch-6.md for content groups.
+Pull requests run tests, content/schema validation, Astro build, Pagefind and Chromium checks. Only a successful merge to main may deploy the static preview. Refer to docs/17-m1-3-batch-1.md and docs/18-m1-3-batch-2.md and docs/19-m1-3-batch-3.md and docs/20-m1-3-batch-4.md and docs/21-m1-3-batch-5.md and docs/22-m1-3-batch-6.md and docs/23-m1-3-batch-7.md for content groups.
 
 ## Structure
 
