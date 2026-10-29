@@ -1,0 +1,177 @@
+---
+{
+  "title": "Observability",
+  "description": "Understanding system behavior from telemetry, traces, metrics, logs, context correlation and evidence limitations.",
+  "contentType": "concept",
+  "conceptId": "sre.observability",
+  "category": "observability-sre",
+  "kind": "concept",
+  "aliases": [
+    "System Observability",
+    "Software Observability"
+  ],
+  "related": [
+    {
+      "conceptId": "sre.distributed-tracing",
+      "relation": "related_to"
+    },
+    {
+      "conceptId": "sre.service-level-objective",
+      "relation": "related_to"
+    },
+    {
+      "conceptId": "sre.root-cause-analysis",
+      "relation": "related_to"
+    },
+    {
+      "conceptId": "performance.tail-latency",
+      "relation": "related_to"
+    }
+  ],
+  "editorialStatus": "draft",
+  "sources": [
+    {
+      "title": "OpenTelemetry — Observability Primer",
+      "url": "https://opentelemetry.io/docs/concepts/observability-primer/",
+      "role": "primary",
+      "scope": "Observability goals, instrumentation and unknown-unknown investigations"
+    },
+    {
+      "title": "OpenTelemetry — Signals",
+      "url": "https://opentelemetry.io/docs/concepts/signals/",
+      "role": "primary",
+      "scope": "Traces, metrics, logs, baggage and development status of other signal categories"
+    },
+    {
+      "title": "OpenTelemetry — Context Propagation",
+      "url": "https://opentelemetry.io/docs/concepts/context-propagation/",
+      "role": "primary",
+      "scope": "Trace and span identifiers, cross-service propagation and correlation"
+    },
+    {
+      "title": "Google SRE — Monitoring Distributed Systems",
+      "url": "https://sre.google/sre-book/monitoring-distributed-systems/",
+      "role": "primary",
+      "scope": "Golden signals, actionable monitoring and the limits of health indicators"
+    }
+  ]
+}
+---
+
+:::caution[Editorial preview — not approved for publication]
+This M1.3 draft demonstrates a tiny in-memory correlation model. It does not run OpenTelemetry, a collector, a tracing backend or a production incident investigation.
+:::
+
+## Precise definition
+
+**Observability** is the ability to investigate a system's internal behavior from its externally available evidence. In software this typically involves **traces**, **metrics**, **logs** and context that connects observations to relevant requests, services or operations. The practical goal is to answer questions about unexpected behavior, including questions that were not anticipated when the original dashboards were designed.
+
+**Monitoring** often checks known conditions against defined indicators and alerts. Observability supports broader diagnosis, but it does not replace monitoring, formal correctness proofs, security controls or careful experiments. Simply emitting telemetry is not sufficient if the resulting signals cannot answer the operational question.
+
+## Why it exists
+
+A request may pass through an API, worker, database and external dependency. Seeing an elevated error counter tells operators that something is wrong, but does not explain which boundary or input triggered it. A distributed trace can expose the request path, logs can provide event context, and metrics show whether the problem affects one request or a population.
+
+Without meaningful instrumentation, operators are forced to infer the system's behavior from limited outputs or repeat incidents to add diagnostic code. Useful observability is a design property of an application and its telemetry pipeline, not just a purchased dashboard.
+
+## Mental model
+
+Imagine diagnosing a hospital queue from three views. **Metrics** summarize how many patients are waiting and how long they wait. **Traces** follow an individual patient through departments. **Logs** record particular events with context. Each view has blind spots. Combining them can support explanations, but correlation is only useful if identifiers are accurate and sensitive information is protected.
+
+## Mechanics and guarantees
+
+1. **Define questions first.** Identify concrete diagnostic questions: which endpoints are slow, which dependency is failing, how failures spread, and which release changed behavior.
+2. **Instrument boundaries.** Capture relevant operations with stable names, durations, outcomes and resource identities. A high-quality span can represent work; a metric aggregates a population; a log captures a discrete event.
+3. **Correlate safely.** Trace and span IDs connect related operations; context propagation carries identifiers across service boundaries. An invalid or missing parent relationship can break trace reconstruction.
+4. **Measure the population.** Metrics must specify units, dimensions and collection semantics. A latency histogram can reveal distributions whereas an average can hide the tail.
+5. **Retain diagnostic context.** Structured events need timestamps, severity and useful context, but should not record passwords, access tokens or arbitrary personal data.
+6. **Account for sampling.** Sampled traces or filtered logs can miss rare failures. Missing evidence is not proof that an event did not occur.
+7. **Constrain cardinality and cost.** A user ID as an unrestricted metric label can explode the number of time series; reserve high-cardinality details for suitably controlled trace/log contexts where justified.
+8. **Connect telemetry to action.** Dashboards and alerts need owners, runbooks, SLO context and safe investigative workflows. Telemetry alone does not determine root cause.
+9. **Choose tools by need.** OpenTelemetry supplies instrumentation APIs, SDKs, data conventions and collection tooling. It is **not** itself a full long-term storage/query/visualization backend.
+
+**Guarantee boundary:** correlation IDs in a log do not prove that every event was recorded or that two events are causally related. Trace IDs provide grouping; causal interpretation requires correctly propagated parent relationships, timing context and understanding of concurrent work. Baggage is propagated metadata, not a substitute for authentication or a place to store secrets.
+
+## Worked example
+
+This runnable **JavaScript / Node.js** fixture constructs a small set of *synthetic* spans, metrics and logs, then correlates them by trace ID. IDs are deliberately simple and not valid OpenTelemetry IDs. It verifies internal consistency in these arrays, not OTLP export or a distributed tracing protocol.
+
+~~~js
+function correlateTelemetry({ spans, logs, metrics }, traceId) {
+  const traceSpans = spans.filter((span) => span.traceId === traceId);
+  if (traceSpans.length === 0) throw new Error("unknown trace");
+  const ids = new Set(traceSpans.map((span) => span.spanId));
+  if (ids.size !== traceSpans.length) throw new Error("duplicate span id");
+  for (const span of traceSpans) {
+    if (span.parentId !== null && !ids.has(span.parentId)) {
+      throw new Error("orphaned parent span");
+    }
+  }
+  const linkedLogs = logs.filter((log) => log.traceId === traceId);
+  if (linkedLogs.some((log) => !ids.has(log.spanId))) {
+    throw new Error("log references missing span");
+  }
+  const requestCount = metrics.filter((point) => point.name === "requests.total")
+    .reduce((sum, point) => sum + point.value, 0);
+  return {
+    spanCount: traceSpans.length,
+    logCount: linkedLogs.length,
+    requestCount,
+  };
+}
+
+const data = {
+  spans: [
+    { traceId: "t1", spanId: "api", parentId: null },
+    { traceId: "t1", spanId: "db", parentId: "api" },
+  ],
+  logs: [
+    { traceId: "t1", spanId: "db", event: "query.completed" },
+  ],
+  metrics: [{ name: "requests.total", value: 1 }],
+};
+const result = correlateTelemetry(data, "t1");
+if (result.spanCount !== 2 || result.logCount !== 1 ||
+    result.requestCount !== 1) {
+  throw new Error("telemetry correlation mismatch");
+}
+~~~
+
+The request count is an illustrative aggregate across the supplied points; the metric is not automatically attached to trace **t1**. This distinction is deliberate: aggregate metrics cannot be turned into per-trace facts without an explicit exemplar or other cross-signal association.
+
+## Failure modes
+
+- **Collecting everything without questions:** unbounded logs increase cost and may still lack actionable context.
+- **Invalid context propagation:** missing or incorrect parent IDs break distributed request reconstruction.
+- **Conflating tracing and logging:** a log line with a trace ID is not a fully linked parent/child span graph.
+- **Assuming no evidence means no incident:** sampling, dropped telemetry, exporter outages and retention can erase observations.
+- **Sensitive payload capture:** credentials, private data and tokens should be redacted or excluded before export.
+- **Metric cardinality explosion:** arbitrary user identifiers or full URLs as labels create operational and cost problems.
+- **Average-only alerting:** mean latency and error totals can hide a failing request segment.
+- **Treating dashboards as root-cause proof:** correlation and temporal ordering are clues; controlled confirmation may still be necessary.
+
+## Trade-offs
+
+Richer telemetry improves diagnosis but increases CPU overhead, network traffic, storage consumption and governance obligations. Sampling keeps costs bounded but can underrepresent rare failures; tail-based sampling may improve signal for some cases but cannot recover data never recorded. Structured logs improve searchability while increasing schema and redaction responsibilities. Clear SLOs and a small set of purposeful signals are often more useful than instrumenting every line of code.
+
+## Related concepts
+
+**Distributed Tracing** models a request or operation path across components and is one source of observability evidence. **Service Level Objectives** translate scoped service indicators into declared reliability targets; they are not guaranteed by merely installing OpenTelemetry. **Root Cause Analysis** uses evidence and experiments to find contributing causes, not only dashboard correlations. **Tail Latency** reveals slow portions of response-time distributions; observability should support drill-down from percentiles to concrete affected operations. See [Tail Latency](/performance-engineering/tail-latency/).
+
+## Testing and verification
+
+- Execute the example and verify the two linked spans, one log and one aggregate request count.
+- Remove the parent span and require an orphan-parent error.
+- Attach a log to an unknown span and require an invalid-link rejection.
+- Introduce duplicate span IDs for one trace and require an error.
+- Change metrics independently and verify that aggregate counts do **not** imply specific trace ownership.
+- For production observability, validate context propagation across real services, redaction, exporters, sampling behavior, metric-label limits and failure scenarios using the chosen telemetry SDK and backend.
+
+## References
+
+- [OpenTelemetry — Observability Primer](https://opentelemetry.io/docs/concepts/observability-primer/) — internal state from telemetry and operational questions.
+- [OpenTelemetry — Signals](https://opentelemetry.io/docs/concepts/signals/) — traces, metrics, logs and other signal maturity levels.
+- [OpenTelemetry — Context Propagation](https://opentelemetry.io/docs/concepts/context-propagation/) — linking cross-service operations.
+- [Google SRE — Monitoring Distributed Systems](https://sre.google/sre-book/monitoring-distributed-systems/) — golden signals and actionable monitoring.
+
+**Editorial status:** draft. A production tracing backend or independently reviewed instrumentation is not provided by this sample.
