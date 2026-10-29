@@ -3,7 +3,7 @@ title: Concept index A–Z
 description: Index of published and planned engineering concepts, clearly separated by editorial status.
 ---
 
-The initial catalog contains 100 concept candidates. **Thirteen editorial drafts are available in the public preview.** They are not approved technical references. Other names below are planned subjects, not verified documentation.
+The initial catalog contains 100 concept candidates. **Fifteen editorial drafts are available in the public preview.** They are not approved technical references. Other names below are planned subjects, not verified documentation.
 
 ## Preview articles
 
@@ -20,6 +20,8 @@ The initial catalog contains 100 concept candidates. **Thirteen editorial drafts
 - [HTTP Method Semantics](/http-api-integration/http-method-semantics/) — safe, idempotent and cacheable request behavior.
 - [Bloom Filter](/data-structures-algorithms/bloom-filter/) — probabilistic membership, bit layouts and false-positive bounds.
 - [Mutation Testing](/testing-verification/mutation-testing/) — killed/survived mutants and test sensitivity.
+- [Bounded Context](/software-architecture/bounded-context/) — model boundaries, language and translation.
+- [Tail Latency](/performance-engineering/tail-latency/) — percentiles and slow-request measurement.
 
 ## All categories
 

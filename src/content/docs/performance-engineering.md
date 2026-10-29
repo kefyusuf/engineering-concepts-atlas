@@ -6,7 +6,7 @@ contentType: category
 This category belongs to **Quality & Operations**. It provides a navigational overview of five selected foundational and advanced terms.
 ## Catalog candidates
 > **Editorial status:** Catalog entries below are planned concepts, not independently reviewed articles. Pilot pages are clearly marked as drafts.
-- **Tail Latency** — Planned; no article available yet.
+- [**Tail Latency**](/performance-engineering/tail-latency/) — Editorial draft preview; independent review pending.
 - **Latency** — Planned; no article available yet.
 - **Throughput** — Planned; no article available yet.
 - **Cache Stampede** — Planned; no article available yet.

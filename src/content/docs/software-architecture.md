@@ -6,7 +6,7 @@ contentType: category
 This category belongs to **Security & Architecture**. It provides a navigational overview of five selected foundational and advanced terms.
 ## Catalog candidates
 > **Editorial status:** Catalog entries below are planned concepts, not independently reviewed articles. Pilot pages are clearly marked as drafts.
-- **Bounded Context** — Planned; no article available yet.
+- [**Bounded Context**](/software-architecture/bounded-context/) — Editorial draft preview; independent review pending.
 - **Hexagonal Architecture** — Planned; no article available yet.
 - **CQRS** — Planned; no article available yet.
 - **Modular Monolith** — Planned; no article available yet.

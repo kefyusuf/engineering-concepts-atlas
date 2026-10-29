@@ -17,6 +17,8 @@ const routes = ['/', '/about/', '/concept-index/', ...categories.map(c => `/${c}
   '/http-api-integration/http-method-semantics/',
   '/data-structures-algorithms/bloom-filter/',
   '/testing-verification/mutation-testing/',
+  '/software-architecture/bounded-context/',
+  '/performance-engineering/tail-latency/',
   '/functional-programming/pure-function/'];
 try {
   const screenshotsDir = process.env.ATLAS_CAPTURE_SCREENSHOTS === 'true' ? resolve(root, 'evidence/ci/screenshots') : undefined;

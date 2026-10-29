@@ -20,6 +20,8 @@ const DEFAULT_ROUTES = [
   '/http-api-integration/http-method-semantics/',
   '/data-structures-algorithms/bloom-filter/',
   '/testing-verification/mutation-testing/',
+  '/software-architecture/bounded-context/',
+  '/performance-engineering/tail-latency/',
 ];
 const SEARCHES = [
   ['idiomatic', '/programming-language-concepts/idiomatic-programming/'],
@@ -35,6 +37,8 @@ const SEARCHES = [
   ['http method semantics', '/http-api-integration/http-method-semantics/'],
   ['bloom filter', '/data-structures-algorithms/bloom-filter/'],
   ['mutation testing', '/testing-verification/mutation-testing/'],
+  ['bounded context', '/software-architecture/bounded-context/'],
+  ['tail latency', '/performance-engineering/tail-latency/'],
 ];
 const PILOT_TITLES = new Map([
   ['/programming-language-concepts/idiomatic-programming/', 'Idiomatic Programming'],
@@ -50,6 +54,8 @@ const PILOT_TITLES = new Map([
   ['/http-api-integration/http-method-semantics/', 'HTTP Method Semantics'],
   ['/data-structures-algorithms/bloom-filter/', 'Bloom Filter'],
   ['/testing-verification/mutation-testing/', 'Mutation Testing'],
+  ['/software-architecture/bounded-context/', 'Bounded Context'],
+  ['/performance-engineering/tail-latency/', 'Tail Latency'],
 ]);
 const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 

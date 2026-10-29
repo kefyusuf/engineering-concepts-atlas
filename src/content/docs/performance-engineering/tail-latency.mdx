@@ -1,0 +1,162 @@
+---
+{
+  "title": "Tail Latency",
+  "description": "High-percentile response times, p99 measurement, histogram aggregation and the operational risks of the slow tail.",
+  "contentType": "concept",
+  "conceptId": "performance.tail-latency",
+  "category": "performance-engineering",
+  "kind": "concept",
+  "aliases": [
+    "p99 Latency",
+    "High-percentile Latency",
+    "Latency Tail"
+  ],
+  "related": [
+    {
+      "conceptId": "performance.latency",
+      "relation": "related_to"
+    },
+    {
+      "conceptId": "performance.throughput",
+      "relation": "related_to"
+    },
+    {
+      "conceptId": "sre.service-level-objective",
+      "relation": "related_to"
+    }
+  ],
+  "editorialStatus": "draft",
+  "sources": [
+    {
+      "title": "Google SRE — Monitoring Distributed Systems",
+      "url": "https://sre.google/sre-book/monitoring-distributed-systems/",
+      "role": "primary",
+      "scope": "Tail latency, golden signals, saturation and histogram measurement"
+    },
+    {
+      "title": "Google SRE — Service Level Objectives",
+      "url": "https://sre.google/sre-book/service-level-objectives/",
+      "role": "primary",
+      "scope": "Percentile-based SLIs, sample populations, measurement windows and distribution pitfalls"
+    },
+    {
+      "title": "Prometheus — Histograms and Summaries",
+      "url": "https://prometheus.io/docs/practices/histograms/",
+      "role": "primary",
+      "scope": "Aggregating histogram buckets and limitations of per-instance quantiles"
+    }
+  ]
+}
+---
+
+:::caution[Editorial preview — not approved for publication]
+This M1.3 draft uses a synthetic sample to explain high-percentile latency. No live workload, production SLO or telemetry backend was evaluated.
+:::
+
+## Precise definition
+
+**Tail latency** refers to the slower end of a response-time distribution, commonly described with high percentiles such as **p95**, **p99** and **p99.9**. The p99 measurement approximates a time at or below which 99% of the measured observations fall. Exact numerical results depend on the sample, time window and quantile calculation method.
+
+A tail-latency result must identify the **request population**, duration boundary (client-to-client versus server only), measurement window, treatment of timeouts and errors, and estimator. It is a distribution summary rather than the latency of a specific user or a guarantee that all requests meet a threshold.
+
+## Why it exists
+
+A low average can hide severe delays for a minority of requests. In a distributed request path, queueing, garbage collection pauses, cache misses, lock contention, resource saturation or slow dependencies may dominate end-to-end waiting. For a page that fans out to many downstream calls, rare slow responses can become common at the top-level request.
+
+Google's SRE guidance treats latency as one of four golden signals alongside traffic, errors and saturation. A rising p99 is important evidence, but investigation requires correlation with load, error rates, request types and traces.
+
+## Mental model
+
+Consider 100 checkout requests: 98 take 20 milliseconds and two take 2,000 milliseconds. The median still reflects an apparently fast service, yet the slowest customers wait two full seconds. A percentile describes a cutoff in a declared population, not the underlying cause. Changing the mix of endpoints or excluding timed-out requests changes the reported distribution.
+
+## Mechanics and guarantees
+
+1. **Define the SLI population.** Record which routes, regions, request results and user journeys are included.
+2. **Choose the time window.** A one-minute p99 and a one-day p99 can describe substantially different operational behavior.
+3. **Choose an estimator.** For nearest-rank quantiles, sort n observations and take rank ceil(p × n). Other libraries interpolate or approximate differently.
+4. **Consider sample size.** With only 20 observations, nearest-rank p99 is effectively the maximum and varies widely with one outlier.
+5. **Use distributions for aggregation.** A fleet-wide p99 cannot generally be obtained by averaging host-specific p99 values. Aggregate raw samples or compatible histograms first.
+6. **Understand histograms.** Prometheus classic histograms accumulate buckets; histogram_quantile computes approximate percentiles after aggregation. Native histograms have different series representations.
+7. **Know measurement limits.** Bucket widths, sampling, timeout filtering and clock boundaries affect accuracy and interpretation.
+8. **Consider fan-out carefully.** Independent slow dependency events raise the probability that at least one sub-call is slow. In real incidents, correlated failures invalidate independence assumptions.
+
+**Guarantee boundary:** high-percentile observations are not service-level promises without a separately defined SLO, nor proof of safe retry or hedging policies. Tail mitigation can itself increase work and overload.
+
+## Worked example
+
+This runnable **JavaScript / Node.js** snippet computes nearest-rank percentiles for a deterministic population of 100 latency observations measured in milliseconds. It does not model a production telemetry system or a histogram estimator.
+
+~~~js
+function nearestRankPercentile(values, fraction) {
+  if (!Array.isArray(values) || values.length === 0) {
+    throw new TypeError("nonempty latency sample required");
+  }
+  if (!(fraction > 0 && fraction <= 1)) {
+    throw new RangeError("fraction must be in (0, 1]");
+  }
+  if (!values.every((value) => Number.isFinite(value) && value >= 0)) {
+    throw new TypeError("latencies must be finite nonnegative numbers");
+  }
+  const sorted = [...values].sort((a, b) => a - b);
+  return sorted[Math.ceil(fraction * sorted.length) - 1];
+}
+
+const samples = [...Array(98).fill(20), 2000, 2000];
+const p50 = nearestRankPercentile(samples, 0.50);
+const p95 = nearestRankPercentile(samples, 0.95);
+const p99 = nearestRankPercentile(samples, 0.99);
+const mean = samples.reduce((sum, value) => sum + value, 0) / samples.length;
+if (p50 !== 20 || p95 !== 20 || p99 !== 2000) {
+  throw new Error("tail quantile result mismatch");
+}
+if (mean >= 100) throw new Error("mean unexpectedly high");
+~~~
+
+This case yields median 20 ms and p99 2,000 ms, while arithmetic mean is below 100 ms. Changing sample sizes, quantile conventions or populations can change p99. This example has no measurement uncertainty because the data are synthetic; production observations do not enjoy that property.
+
+### Histogram query illustration
+
+The following **PromQL** expression uses a classic histogram. It is documentary and is **not executed** by the article's Node tests.
+
+~~~promql
+histogram_quantile(0.99,
+  sum by (le) (rate(http_request_duration_seconds_bucket[5m])))
+~~~
+
+The query presumes suitable instrumentation, bucket coverage and valid per-bucket counters. Native histograms have a different query shape; quantiles may be estimated by interpolation. It is incorrect to average already-computed per-instance p99 values and call the result a global p99.
+
+## Failure modes
+
+- **Monitoring only the mean:** rare multi-second delays may go unnoticed.
+- **Averaging node percentiles:** nonlinear quantiles cannot be combined this way.
+- **Ignoring timeouts and failures:** censoring slow requests can report a deceptively healthy service.
+- **Mixing dissimilar request populations:** high-volume fast endpoints can hide slow critical operations.
+- **Interpreting tiny samples:** a p99 from a handful of observations can be unstable.
+- **Poor bucket resolution:** broad high-latency buckets distort approximated quantiles.
+- **Uncontrolled retries:** additional traffic can amplify saturation and worsen tail latency.
+- **Sampling completed requests only:** in-flight operations may disappear from dashboards during incidents.
+
+## Trade-offs
+
+High-percentile monitoring captures customer experience that means conceal but requires disciplined definitions, meaningful sample sizes and correct aggregation. Raw observations retain detail but have storage cost. Histograms aggregate efficiently, with approximation and bucket-resolution costs. Performance mitigations such as timeouts, concurrency limits, caching and hedged requests need workload-specific testing and safety budgets.
+
+## Related concepts
+
+**Latency** refers to response duration, whereas tail latency emphasizes its slowest distribution segments. **Throughput** measures work per time and can rise while tail latencies deteriorate near saturation. A **Service Level Objective** is a separately agreed target on a precisely scoped SLI. **Distributed tracing** provides detailed paths for slow requests; p99 alone cannot reveal the root cause.
+
+## Testing and verification
+
+- Run the code sample and verify p50, p95 and p99 on the fixed sample.
+- Replace the two 2,000 ms observations with 200 ms and verify the high percentile changes.
+- Verify the source array is not modified by the percentile function.
+- Reject NaN, negative durations, empty input and invalid percentile fractions.
+- For an actual service, compare histogram p99 against raw traces and record the aggregation window and included requests.
+- Verify aggregation across hosts from distributions or buckets rather than the arithmetic mean of local p99 values.
+
+## References
+
+- [Google SRE — Monitoring Distributed Systems](https://sre.google/sre-book/monitoring-distributed-systems/) — golden signals and tails.
+- [Google SRE — Service Level Objectives](https://sre.google/sre-book/service-level-objectives/) — percentile SLIs and measurement caveats.
+- [Prometheus — Histograms and Summaries](https://prometheus.io/docs/practices/histograms/) — histogram aggregation and quantile limitations.
+
+**Editorial status:** draft. Independent review and production SLO verification remain outstanding.
